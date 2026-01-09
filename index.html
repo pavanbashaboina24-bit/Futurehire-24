@@ -1,0 +1,2330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTUREHIRE - Skills & Career Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .hidden { display: none; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Smooth scrolling for tables */
+        .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        
+        /* Circular Progress for Job Predictor */
+        .circular-chart { display: block; margin: 0 auto; max-width: 80%; max-height: 250px; }
+        .circle-bg { fill: none; stroke: #eee; stroke-width: 2.5; }
+        .circle { fill: none; stroke-width: 2.5; stroke-linecap: round; transition: stroke-dasharray 1s ease-out; }
+        .percentage { fill: #1e293b; font-family: sans-serif; font-weight: bold; font-size: 0.5em; text-anchor: middle; }
+
+        /* Chatbot Styles */
+        .chat-widget { position: fixed; bottom: 20px; right: 20px; z-index: 100; display: flex; flex-direction: column; align-items: flex-end; }
+        .chat-btn { width: 60px; height: 60px; background: #2563eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; transition: transform 0.2s; }
+        .chat-btn:hover { transform: scale(1.1); }
+        .chat-window { width: 350px; height: 500px; background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); overflow: hidden; display: none; flex-direction: column; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .chat-header { background: #1e40af; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; }
+        .chat-footer { padding: 10px; border-top: 1px solid #e2e8f0; display: flex; gap: 5px; background: white; }
+        .chat-input { flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; font-size: 14px; }
+        .msg { max-width: 80%; padding: 8px 12px; border-radius: 15px; font-size: 14px; line-height: 1.4; }
+        .msg-bot { background: #e0f2fe; color: #0f172a; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .msg-user { background: #2563eb; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .suggestion-chip { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 15px; font-size: 12px; cursor: pointer; transition: all 0.2s; display: inline-block; margin: 2px; }
+        .suggestion-chip:hover { background: #e2e8f0; border-color: #94a3b8; }
+        .typing-indicator { font-style: italic; color: #64748b; font-size: 12px; margin-left: 10px; display: none; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- NAVBAR -->
+    <nav class="bg-blue-800 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2 cursor-pointer hover:opacity-90 transition" onclick="navigateTo('dashboard', true)">
+                    <i class="ph-fill ph-rocket-launch text-2xl text-blue-300"></i>
+                    <h1 class="text-2xl font-bold tracking-wide">FUTUREHIRE</h1>
+                </div>
+                <div>
+                    <!-- Auth Section Logic -->
+                    <div id="auth-section">
+                        <button onclick="navigateTo('login-home')" class="bg-white/10 border border-white/20 text-white px-5 py-1.5 rounded-full font-medium hover:bg-white hover:text-blue-800 transition text-sm backdrop-blur-sm">
+                            Sign In | Login
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main-container" class="max-w-7xl mx-auto p-6 flex-grow">
+        
+        <!-- BACK BUTTON -->
+        <div id="back-container" class="hidden mb-6">
+            <button onclick="goBack()" class="flex items-center text-slate-500 hover:text-blue-700 font-medium transition group px-4 py-2 bg-white rounded-lg shadow-sm border border-slate-200">
+                <i class="ph-bold ph-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i> 
+                <span>Back</span>
+            </button>
+        </div>
+
+        <!-- ================== AUTHENTICATION MODULES ================== -->
+        
+        <!-- 1. LOGIN PAGE -->
+        <div id="login-home" class="view-section hidden fade-in max-w-md mx-auto mt-10">
+            <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800">Welcome Back</h2>
+                    <p class="text-slate-500 text-sm mt-1">Login to access your dashboard</p>
+                </div>
+                <form onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Email / Username</label>
+                        <input type="text" id="login-email" required class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                        <input type="password" id="login-pass" required class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <label class="flex items-center text-slate-600"><input type="checkbox" class="mr-2"> Remember me</label>
+                        <span class="text-blue-600 cursor-pointer hover:underline">Forgot Password?</span>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition">Login</button>
+                </form>
+                <div class="mt-6 text-center text-sm">
+                    <p class="text-slate-500">New to FutureHire? <span onclick="navigateTo('signup-home')" class="text-blue-600 font-bold cursor-pointer hover:underline">Create Account</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. SIGN UP PAGE -->
+        <div id="signup-home" class="view-section hidden fade-in max-w-3xl mx-auto mt-4">
+            <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-slate-800">Create Your Account</h2>
+                    <p class="text-slate-500 text-sm mt-1">Details will be sent to admin for verification.</p>
+                </div>
+                
+                <form onsubmit="handleSignup(event)" class="space-y-6">
+                    <!-- Section A: Personal -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h3 class="font-bold text-slate-700 mb-3 flex items-center"><i class="ph-fill ph-user mr-2 text-blue-600"></i> Personal Info</h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div><label class="text-xs font-bold text-slate-500">Full Name</label><input type="text" id="reg-name" required class="w-full p-2 border rounded text-sm"></div>
+                            <div><label class="text-xs font-bold text-slate-500">Mobile</label><input type="tel" id="reg-mobile" required class="w-full p-2 border rounded text-sm"></div>
+                            <div><label class="text-xs font-bold text-slate-500">Email</label><input type="email" id="reg-email" required class="w-full p-2 border rounded text-sm"></div>
+                            <div><label class="text-xs font-bold text-slate-500">Gender</label><select id="reg-gender" class="w-full p-2 border rounded text-sm"><option>Male</option><option>Female</option><option>Other</option></select></div>
+                        </div>
+                    </div>
+
+                    <!-- Section B: Academic (Eligibility Check) -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h3 class="font-bold text-slate-700 mb-3 flex items-center"><i class="ph-fill ph-student mr-2 text-green-600"></i> Academic Details</h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-bold text-slate-500">Qualification</label>
+                                <select id="reg-qual" class="w-full p-2 border rounded text-sm">
+                                    <option value="btech">B.Tech / B.E</option>
+                                    <option value="diploma">Diploma</option>
+                                    <option value="other">Other (Arts/Commerce/Science)</option>
+                                </select>
+                            </div>
+                            <div><label class="text-xs font-bold text-slate-500">College Name</label><input type="text" id="reg-college" required class="w-full p-2 border rounded text-sm"></div>
+                            <div><label class="text-xs font-bold text-slate-500">Branch</label><input type="text" id="reg-branch" required class="w-full p-2 border rounded text-sm" placeholder="e.g. CSE, ECE"></div>
+                            <div><label class="text-xs font-bold text-slate-500">Current CGPA</label><input type="number" id="reg-cgpa" step="0.1" required class="w-full p-2 border rounded text-sm" placeholder="e.g. 7.5"></div>
+                            <div><label class="text-xs font-bold text-slate-500">Year of Study</label><select id="reg-year" class="w-full p-2 border rounded text-sm"><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option><option>Graduated</option></select></div>
+                        </div>
+                    </div>
+
+                    <!-- Section C: Career & Password -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h3 class="font-bold text-slate-700 mb-3 flex items-center"><i class="ph-fill ph-briefcase mr-2 text-purple-600"></i> Career Interests</h3>
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div><label class="text-xs font-bold text-slate-500">Goal</label><select id="reg-goal" class="w-full p-2 border rounded text-sm"><option>Job</option><option>Higher Studies</option><option>Both</option></select></div>
+                            <div><label class="text-xs font-bold text-slate-500">Target Role</label><input type="text" id="reg-role" class="w-full p-2 border rounded text-sm" placeholder="e.g. SDE"></div>
+                        </div>
+                        <div class="border-t border-slate-200 pt-4">
+                            <label class="text-xs font-bold text-slate-500">Password</label>
+                            <input type="password" id="reg-pass" required class="w-full p-2 border rounded text-sm mb-2" placeholder="Create Password">
+                            <input type="password" id="reg-confirm-pass" required class="w-full p-2 border rounded text-sm" placeholder="Confirm Password">
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button type="button" onclick="goBack()" class="flex-1 py-3 border border-slate-300 rounded-xl font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                        <button type="submit" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg">Register & Send to Admin</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 3. USER PROFILE VIEW -->
+        <div id="user-profile-view" class="view-section hidden fade-in">
+            <h2 class="text-3xl font-bold mb-6 text-slate-800">My Profile</h2>
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 h-32"></div>
+                <div class="px-8 pb-8 relative">
+                    <div class="flex flex-col md:flex-row items-start md:items-end -mt-12 mb-6 gap-6">
+                        <div class="w-24 h-24 bg-white p-1 rounded-full shadow-lg">
+                            <img src="https://ui-avatars.com/api/?name=User&background=random" id="profile-img" class="w-full h-full rounded-full object-cover">
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold text-slate-900" id="profile-name">User Name</h3>
+                            <p class="text-slate-500" id="profile-email">user@example.com</p>
+                        </div>
+                        <button class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium text-sm hover:bg-slate-200 border border-slate-300">Edit Profile</button>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-8 border-t border-slate-100 pt-6">
+                        <div>
+                            <h4 class="font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="ph-fill ph-student text-blue-500"></i> Academic Info</h4>
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-500">College</span><span class="font-medium" id="profile-college">Not set</span></div>
+                                <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-500">Branch</span><span class="font-medium" id="profile-branch">Not set</span></div>
+                                <div class="flex justify-between border-b border-slate-50 pb-2"><span class="text-slate-500">CGPA</span><span class="font-medium" id="profile-cgpa">Not set</span></div>
+                                <div class="flex justify-between"><span class="text-slate-500">Year</span><span class="font-medium" id="profile-year">Not set</span></div>
+                            </div>
+                        </div>
+                        <div>
+                             <h4 class="font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="ph-fill ph-chart-line-up text-green-500"></i> Platform Stats</h4>
+                             <div class="grid grid-cols-2 gap-4">
+                                 <div class="bg-slate-50 p-3 rounded-lg text-center">
+                                     <span class="block text-2xl font-bold text-slate-800">0</span>
+                                     <span class="text-xs text-slate-500">Courses</span>
+                                 </div>
+                                 <div class="bg-slate-50 p-3 rounded-lg text-center">
+                                     <span class="block text-2xl font-bold text-slate-800">0%</span>
+                                     <span class="text-xs text-slate-500">Readiness</span>
+                                 </div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="view-section fade-in">
+            <div class="text-center mb-12 mt-8">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
+                    What's Next After <span class="text-blue-600">B.Tech?</span>
+                </h1>
+                <p class="text-lg text-slate-500 max-w-2xl mx-auto">
+                    Your all-in-one platform for off-campus drives, skill roadmaps, and career prediction.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div onclick="navigateTo('companies-home')" class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer border border-slate-100 group flex flex-col items-center text-center hover:-translate-y-1">
+                    <div class="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-4 text-3xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <i class="ph-fill ph-buildings"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">Companies</h3>
+                    <p class="text-slate-500 text-sm mt-2">50+ Profiles, Packages & Internships</p>
+                </div>
+
+                <div onclick="navigateTo('skills-home')" class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer border border-slate-100 group flex flex-col items-center text-center hover:-translate-y-1">
+                    <div class="w-16 h-16 rounded-full bg-green-50 text-green-600 flex items-center justify-center mb-4 text-3xl group-hover:bg-green-600 group-hover:text-white transition-colors">
+                        <i class="ph-fill ph-book-open"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">Skills</h3>
+                    <p class="text-slate-500 text-sm mt-2">Comm, Technical & Soft Skills</p>
+                </div>
+
+                <div onclick="navigateTo('courses-home')" class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer border border-slate-100 group flex flex-col items-center text-center hover:-translate-y-1">
+                    <div class="w-16 h-16 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mb-4 text-3xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                        <i class="ph-fill ph-monitor-play"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">Courses</h3>
+                    <p class="text-slate-500 text-sm mt-2">Certification & Learning</p>
+                </div>
+                
+                <div onclick="navigateTo('higher-studies-home')" class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer border border-slate-100 group flex flex-col items-center text-center hover:-translate-y-1">
+                    <div class="w-16 h-16 rounded-full bg-yellow-50 text-yellow-600 flex items-center justify-center mb-4 text-3xl group-hover:bg-yellow-600 group-hover:text-white transition-colors">
+                        <i class="ph-fill ph-graduation-cap"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">Higher Studies</h3>
+                    <p class="text-slate-500 text-sm mt-2">GATE, GRE & Colleges</p>
+                </div>
+
+                <div onclick="navigateTo('prediction')" class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer border border-slate-100 group flex flex-col items-center text-center hover:-translate-y-1">
+                    <div class="w-16 h-16 rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-4 text-3xl group-hover:bg-red-600 group-hover:text-white transition-colors">
+                        <i class="ph-fill ph-magic-wand"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">Job Predictor</h3>
+                    <p class="text-slate-500 text-sm mt-2">AI Role & Readiness Analysis</p>
+                </div>
+                
+                <div onclick="navigateTo('mentors-home')" class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer border border-slate-100 group flex flex-col items-center text-center hover:-translate-y-1">
+                    <div class="w-16 h-16 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4 text-3xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <i class="ph-fill ph-users"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">Mentors</h3>
+                    <p class="text-slate-500 text-sm mt-2">Connect with Seniors</p>
+                </div>
+
+                <div onclick="navigateTo('future-trends')" class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all cursor-pointer border border-slate-100 group flex flex-col items-center text-center hover:-translate-y-1">
+                    <div class="w-16 h-16 rounded-full bg-pink-50 text-pink-600 flex items-center justify-center mb-4 text-3xl group-hover:bg-pink-600 group-hover:text-white transition-colors">
+                        <i class="ph-fill ph-trend-up"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">Future Trends 2026</h3>
+                    <p class="text-slate-500 text-sm mt-2">Emerging Tech & Careers</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================== COMPANIES MODULE ================== -->
+        <div id="companies-home" class="view-section hidden fade-in">
+            <h2 class="text-3xl font-bold mb-8 text-slate-800 border-l-8 border-blue-600 pl-4">Companies Module</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div onclick="navigateTo('comp-list')" class="bg-white p-6 rounded-xl shadow-md cursor-pointer hover:shadow-xl hover:-translate-y-1 transition border-t-4 border-blue-500">
+                    <i class="ph-duotone ph-info text-5xl mb-4 text-blue-600"></i>
+                    <h3 class="text-xl font-bold mb-2">1. Company Directory</h3>
+                    <p class="text-slate-500 text-sm">Detailed profiles of 50+ top recruiters.</p>
+                </div>
+                <div onclick="navigateTo('comp-packages')" class="bg-white p-6 rounded-xl shadow-md cursor-pointer hover:shadow-xl hover:-translate-y-1 transition border-t-4 border-emerald-500">
+                    <i class="ph-duotone ph-currency-inr text-5xl mb-4 text-emerald-600"></i>
+                    <h3 class="text-xl font-bold mb-2">2. Fresher Packages</h3>
+                    <p class="text-slate-500 text-sm">Compare CTC, bonds, and growth.</p>
+                </div>
+                <div onclick="navigateTo('comp-internships')" class="bg-white p-6 rounded-xl shadow-md cursor-pointer hover:shadow-xl hover:-translate-y-1 transition border-t-4 border-purple-500">
+                    <i class="ph-duotone ph-laptop text-5xl mb-4 text-purple-600"></i>
+                    <h3 class="text-xl font-bold mb-2">3. Internship Hub</h3>
+                    <p class="text-slate-500 text-sm">Apply to active internships.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="comp-list" class="view-section hidden fade-in">
+            <h2 class="text-2xl font-bold mb-6">🏢 Company Directory (50+ Listed)</h2>
+            <div id="company-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+        <div id="comp-detail-view" class="view-section hidden fade-in">
+            <div id="company-detail-content" class="bg-white p-8 rounded-2xl shadow-lg border border-slate-100"></div>
+        </div>
+        <div id="comp-packages" class="view-section hidden fade-in">
+             <h2 class="text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2"><i class="ph-fill ph-money text-emerald-600"></i> Fresher Salary Packages</h2>
+             <div class="overflow-x-auto custom-scrollbar bg-white rounded-xl shadow-sm border border-slate-200">
+                <table class="min-w-full text-left text-sm"><thead class="bg-slate-50"><tr><th class="px-6 py-4">Company</th><th class="px-6 py-4">Role</th><th class="px-6 py-4">CTC</th><th class="px-6 py-4">Bond</th></tr></thead><tbody id="package-table-body" class="divide-y divide-slate-100"></tbody></table>
+            </div>
+        </div>
+        <div id="comp-internships" class="view-section hidden fade-in">
+             <h2 class="text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2"><i class="ph-fill ph-rocket-launch text-violet-600"></i> Active Internships</h2>
+             <div id="internship-container" class="grid md:grid-cols-2 gap-6"></div>
+        </div>
+
+        <!-- ================== SKILLS MAIN MENU (LEVEL 2) ================== -->
+        <div id="skills-home" class="view-section hidden fade-in">
+            <h2 class="text-3xl font-bold mb-8 text-slate-800 border-l-8 border-green-600 pl-4">Skills Development</h2>
+            <p class="mb-6 text-slate-600">Master the skills you need to get hired. Choose a module below:</p>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div onclick="navigateTo('skill-comm-menu')" class="bg-white p-6 rounded-xl shadow-md cursor-pointer hover:shadow-xl hover:-translate-y-1 transition border-t-4 border-orange-500 group">
+                    <div class="flex justify-between items-start mb-4">
+                        <i class="ph-duotone ph-chat-circle-text text-5xl text-orange-500"></i>
+                        <span class="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded">Fluency</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 group-hover:text-orange-600 transition">Communication Skills</h3>
+                    <p class="text-slate-500 text-sm">Spoken English, Interview Answers, and Grammar Analysis.</p>
+                </div>
+
+                <div onclick="navigateTo('skill-tech-menu')" class="bg-white p-6 rounded-xl shadow-md cursor-pointer hover:shadow-xl hover:-translate-y-1 transition border-t-4 border-blue-500 group">
+                    <div class="flex justify-between items-start mb-4">
+                        <i class="ph-duotone ph-code text-5xl text-blue-500"></i>
+                        <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded">Coding</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 group-hover:text-blue-600 transition">Technical Skills</h3>
+                    <p class="text-slate-500 text-sm">Java, Python, Web Dev, and Competitive Coding Tests.</p>
+                </div>
+
+                <div onclick="navigateTo('skill-soft-menu')" class="bg-white p-6 rounded-xl shadow-md cursor-pointer hover:shadow-xl hover:-translate-y-1 transition border-t-4 border-pink-500 group">
+                    <div class="flex justify-between items-start mb-4">
+                        <i class="ph-duotone ph-handshake text-5xl text-pink-500"></i>
+                        <span class="bg-pink-100 text-pink-700 text-xs font-bold px-2 py-1 rounded">Behavior</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 group-hover:text-pink-600 transition">Soft Skills</h3>
+                    <p class="text-slate-500 text-sm">Professionalism, Body Language, and HR Mock Interviews.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================== 1. COMMUNICATION SECTION ================== -->
+        <div id="skill-comm-menu" class="view-section hidden fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2">
+                <i class="ph-fill ph-chat-circle-text text-orange-500"></i> Communication Tools
+            </h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div onclick="navigateTo('comm-learning')" class="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg cursor-pointer border border-slate-100 text-center hover:border-orange-400 transition">
+                    <i class="ph-duotone ph-video text-5xl text-orange-500 mb-4"></i>
+                    <h3 class="font-bold text-lg text-slate-800">Learning Videos</h3>
+                    <p class="text-sm text-slate-500 mt-2">Tutorials & Guides</p>
+                </div>
+                <div onclick="navigateTo('comm-ai')" class="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg cursor-pointer border border-slate-100 text-center hover:border-orange-400 transition">
+                    <i class="ph-duotone ph-robot text-5xl text-orange-500 mb-4"></i>
+                    <h3 class="font-bold text-lg text-slate-800">AI Grammar Coach</h3>
+                    <p class="text-sm text-slate-500 mt-2">Check Sentence Quality</p>
+                </div>
+                <div onclick="navigateTo('comm-mock')" class="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg cursor-pointer border border-slate-100 text-center hover:border-orange-400 transition">
+                    <i class="ph-duotone ph-calendar-check text-5xl text-orange-500 mb-4"></i>
+                    <h3 class="font-bold text-lg text-slate-800">Mock Interview</h3>
+                    <p class="text-sm text-slate-500 mt-2">Book a Session</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="comm-learning" class="view-section hidden fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">📹 Communication Skills Learning</h2>
+            <div class="max-w-4xl space-y-6">
+                <div>
+                    <h3 class="text-xl font-bold mb-4 text-slate-700">Free YouTube Resources</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <a href="https://www.youtube.com/watch?v=0mQy8SQxmL4" target="_blank" class="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                            <i class="ph-fill ph-youtube-logo text-red-600 text-4xl"></i>
+                            <div>
+                                <p class="font-bold text-lg text-slate-800">Speak Fluent English</p>
+                                <p class="text-sm text-slate-500">Improve Communication Skills</p>
+                            </div>
+                        </a>
+                        <a href="https://www.youtube.com/watch?v=qzMqJcY9pKM" target="_blank" class="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                            <i class="ph-fill ph-youtube-logo text-red-600 text-4xl"></i>
+                            <div>
+                                <p class="font-bold text-lg text-slate-800">English Speaking Practice</p>
+                                <p class="text-sm text-slate-500">Full Course</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4 text-slate-700">Paid Courses</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <a href="https://www.udemy.com/course/communication-skills/" target="_blank" class="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                            <i class="ph-fill ph-graduation-cap text-blue-600 text-4xl"></i>
+                            <div>
+                                <p class="font-bold text-lg text-slate-800">Udemy: Communication Masterclass</p>
+                                <p class="text-sm text-slate-500">Comprehensive Course</p>
+                            </div>
+                        </a>
+                        <a href="https://www.coursera.org/specializations/google-business-communication" target="_blank" class="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                            <i class="ph-fill ph-graduation-cap text-blue-600 text-4xl"></i>
+                            <div>
+                                <p class="font-bold text-lg text-slate-800">Coursera: Business Communication</p>
+                                <p class="text-sm text-slate-500">Google Specialization</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="comm-ai" class="view-section hidden fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2"><i class="ph-bold ph-robot text-orange-500"></i> Communication AI</h2>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-orange-500 max-w-2xl">
+                <p class="text-sm text-slate-500 mb-4">Type a sentence to check grammar and tone.</p>
+                <textarea id="comm-input" class="w-full p-4 border rounded-lg text-sm bg-slate-50 focus:ring-orange-500 focus:border-orange-500" rows="4" placeholder="e.g. I is a good developer looking for jobs..."></textarea>
+                <button onclick="analyzeComm()" class="mt-4 bg-orange-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-orange-700 transition">Analyze Text</button>
+                <div id="comm-result" class="hidden mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <p class="text-xs font-bold text-green-700 uppercase">AI Suggestion:</p>
+                    <p class="text-sm text-slate-800 mt-1">"I <b>am</b> a skilled developer <b>seeking</b> job <b>opportunities</b>."</p>
+                    <p class="text-xs text-slate-500 mt-2">Score: 8/10 (Professional)</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="comm-mock" class="view-section hidden fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">📅 Book Mock Interview</h2>
+            <div class="bg-white p-8 rounded-xl shadow-lg border border-slate-200 max-w-xl">
+                <form onsubmit="bookSlot(event, 'Communication')" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Select Date</label>
+                        <input type="date" required class="mt-1 block w-full border border-slate-300 rounded-md p-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Time Slot</label>
+                        <select class="mt-1 block w-full border border-slate-300 rounded-md p-2">
+                            <option>10:00 AM - 10:30 AM</option>
+                            <option>02:00 PM - 02:30 PM</option>
+                            <option>06:00 PM - 06:30 PM</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Focus Area</label>
+                        <select class="mt-1 block w-full border border-slate-300 rounded-md p-2">
+                            <option>General HR</option>
+                            <option>Technical Explanation</option>
+                            <option>Project Discussion</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-slate-900 text-white py-3 rounded-lg font-bold hover:bg-slate-800 transition">Confirm Booking</button>
+                </form>
+            </div>
+        </div>
+
+
+        <!-- ================== 2. TECHNICAL SECTION ================== -->
+        <div id="skill-tech-menu" class="view-section hidden fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2">
+                <i class="ph-fill ph-code text-blue-600"></i> Technical Mastery
+            </h2>
+             <div class="grid md:grid-cols-2 gap-6 max-w-4xl">
+                <div onclick="navigateTo('tech-learning')" class="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg cursor-pointer border border-slate-100 text-center hover:border-blue-400 transition">
+                    <i class="ph-duotone ph-books text-5xl text-blue-500 mb-4"></i>
+                    <h3 class="font-bold text-lg text-slate-800">Learning Paths</h3>
+                    <p class="text-sm text-slate-500 mt-2">Java, Python, Web Dev</p>
+                </div>
+                <div onclick="navigateTo('tech-test')" class="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg cursor-pointer border border-slate-100 text-center hover:border-blue-400 transition">
+                    <i class="ph-duotone ph-terminal-window text-5xl text-blue-500 mb-4"></i>
+                    <h3 class="font-bold text-lg text-slate-800">Coding Tests</h3>
+                    <p class="text-sm text-slate-500 mt-2">Take Assessment</p>
+                </div>
+             </div>
+        </div>
+
+        <div id="tech-learning" class="view-section hidden fade-in">
+             <h2 class="text-2xl font-bold mb-6 text-slate-800">📚 Technical Skills Learning</h2>
+             <div class="max-w-4xl space-y-6">
+                <div>
+                    <h3 class="text-xl font-bold mb-4 text-slate-700">Free YouTube Resources</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <a href="https://www.youtube.com/playlist?list=PLu0W_9lII9agS67Uits0UnJyrYiXhDS6" target="_blank" class="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                            <i class="ph-fill ph-youtube-logo text-red-600 text-4xl"></i>
+                            <div>
+                                <p class="font-bold text-lg text-slate-800">DSA Full Course</p>
+                                <p class="text-sm text-slate-500">CodeWithHarry</p>
+                            </div>
+                        </a>
+                        <a href="https://www.youtube.com/c/Freecodecamp" target="_blank" class="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                            <i class="ph-fill ph-youtube-logo text-red-600 text-4xl"></i>
+                            <div>
+                                <p class="font-bold text-lg text-slate-800">Web Development</p>
+                                <p class="text-sm text-slate-500">FreeCodeCamp</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4 text-slate-700">Paid Courses</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <a href="https://www.udemy.com/course/java-the-complete-java-developer-course/" target="_blank" class="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                            <i class="ph-fill ph-graduation-cap text-blue-600 text-4xl"></i>
+                            <div>
+                                <p class="font-bold text-lg text-slate-800">Udemy: Java Complete Course</p>
+                                <p class="text-sm text-slate-500">Comprehensive Java</p>
+                            </div>
+                        </a>
+                        <a href="https://www.coursera.org/specializations/google-data-analytics" target="_blank" class="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                            <i class="ph-fill ph-graduation-cap text-blue-600 text-4xl"></i>
+                            <div>
+                                <p class="font-bold text-lg text-slate-800">Coursera: Data Analytics</p>
+                                <p class="text-sm text-slate-500">Google Specialization</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+             </div>
+        </div>
+
+        <div id="tech-test" class="view-section hidden fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">⚡ Technical Skill Assessment</h2>
+            <div class="max-w-4xl space-y-6">
+                <div>
+                    <h3 class="text-xl font-bold mb-4 text-slate-700">Practice Tests</h3>
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <a href="https://www.codechef.com/" target="_blank" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition text-center">
+                            <i class="ph-fill ph-code text-orange-600 text-3xl mb-2"></i>
+                            <p class="font-bold text-slate-800">CodeChef</p>
+                            <p class="text-sm text-slate-500">Beginner</p>
+                        </a>
+                        <a href="https://www.geeksforgeeks.org/" target="_blank" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition text-center">
+                            <i class="ph-fill ph-code text-green-600 text-3xl mb-2"></i>
+                            <p class="font-bold text-slate-800">GeeksforGeeks</p>
+                            <p class="text-sm text-slate-500">Practice</p>
+                        </a>
+                        <a href="https://www.hackerrank.com/" target="_blank" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition text-center">
+                            <i class="ph-fill ph-code text-blue-600 text-3xl mb-2"></i>
+                            <p class="font-bold text-slate-800">HackerRank</p>
+                            <p class="text-sm text-slate-500">Intermediate</p>
+                        </a>
+                        <a href="https://leetcode.com/" target="_blank" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition text-center">
+                            <i class="ph-fill ph-code text-yellow-600 text-3xl mb-2"></i>
+                            <p class="font-bold text-slate-800">LeetCode</p>
+                            <p class="text-sm text-slate-500">Advanced</p>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4 text-slate-700">Timed Tests</h3>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-600">
+                        <p class="text-sm text-slate-500 mb-6">Take 4-question tests with 1-hour time limit.</p>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center bg-slate-50 p-4 rounded-lg">
+                                <span class="font-bold text-slate-800">Java Basics (Easy)</span>
+                                <button onclick="startTest('Java')" class="bg-blue-600 text-white px-4 py-1.5 rounded text-sm font-medium hover:bg-blue-700">Start Test</button>
+                            </div>
+                            <div class="flex justify-between items-center bg-slate-50 p-4 rounded-lg">
+                                <span class="font-bold text-slate-800">Python Logic (Easy)</span>
+                                <button onclick="startTest('Python')" class="bg-blue-600 text-white px-4 py-1.5 rounded text-sm font-medium hover:bg-blue-700">Start Test</button>
+                            </div>
+                            <div class="flex justify-between items-center bg-slate-50 p-4 rounded-lg">
+                                <span class="font-bold text-slate-800">DSA - Arrays (Medium)</span>
+                                <button onclick="startTest('DSA')" class="bg-blue-600 text-white px-4 py-1.5 rounded text-sm font-medium hover:bg-blue-700">Start Test</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================== 3. SOFT SKILLS SECTION ================== -->
+        <div id="skill-soft-menu" class="view-section hidden fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2">
+                <i class="ph-fill ph-handshake text-pink-500"></i> Corporate Readiness
+            </h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div onclick="navigateTo('soft-learning')" class="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg cursor-pointer border border-slate-100 text-center hover:border-pink-400 transition">
+                    <i class="ph-duotone ph-book-open-text text-5xl text-pink-500 mb-4"></i>
+                    <h3 class="font-bold text-lg text-slate-800">Etiquette Guide</h3>
+                    <p class="text-sm text-slate-500 mt-2">Workplace Behavior</p>
+                </div>
+                <div onclick="navigateTo('soft-ai')" class="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg cursor-pointer border border-slate-100 text-center hover:border-pink-400 transition">
+                    <i class="ph-duotone ph-brain text-5xl text-pink-500 mb-4"></i>
+                    <h3 class="font-bold text-lg text-slate-800">Tone Analyzer</h3>
+                    <p class="text-sm text-slate-500 mt-2">Professionalism Check</p>
+                </div>
+                <div onclick="navigateTo('soft-mock')" class="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg cursor-pointer border border-slate-100 text-center hover:border-pink-400 transition">
+                    <i class="ph-duotone ph-user-focus text-5xl text-pink-500 mb-4"></i>
+                    <h3 class="font-bold text-lg text-slate-800">HR Mock Round</h3>
+                    <p class="text-sm text-slate-500 mt-2">Practice Questions</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="soft-learning" class="view-section hidden fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">👔 Workplace Etiquette</h2>
+            <div class="grid grid-cols-2 gap-6 max-w-3xl">
+                <div class="bg-pink-50 p-6 rounded-xl text-center cursor-pointer hover:bg-pink-100 transition">
+                    <i class="ph-duotone ph-users-three text-4xl text-pink-600 mb-3"></i>
+                    <p class="font-bold text-slate-800">Team Work</p>
+                    <p class="text-xs text-slate-600 mt-1">Collaboration Tips</p>
+                </div>
+                <div class="bg-pink-50 p-6 rounded-xl text-center cursor-pointer hover:bg-pink-100 transition">
+                    <i class="ph-duotone ph-presentation-chart text-4xl text-pink-600 mb-3"></i>
+                    <p class="font-bold text-slate-800">Meetings</p>
+                    <p class="text-xs text-slate-600 mt-1">Speaking & Listening</p>
+                </div>
+                <div class="bg-pink-50 p-6 rounded-xl text-center cursor-pointer hover:bg-pink-100 transition">
+                    <i class="ph-duotone ph-user-focus text-4xl text-pink-600 mb-3"></i>
+                    <p class="font-bold text-slate-800">Body Language</p>
+                    <p class="text-xs text-slate-600 mt-1">Posture & Gestures</p>
+                </div>
+                <div class="bg-pink-50 p-6 rounded-xl text-center cursor-pointer hover:bg-pink-100 transition">
+                    <i class="ph-duotone ph-envelope-simple text-4xl text-pink-600 mb-3"></i>
+                    <p class="font-bold text-slate-800">Email Writing</p>
+                    <p class="text-xs text-slate-600 mt-1">Professional Formats</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="soft-ai" class="view-section hidden fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">🧠 Behavioral AI</h2>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-pink-500 max-w-2xl">
+                <p class="text-sm text-slate-500 mb-4">Analyze your professional response tone.</p>
+                <textarea id="soft-input" class="w-full p-4 border rounded-lg text-sm bg-slate-50 focus:ring-pink-500 focus:border-pink-500" rows="4" placeholder="e.g. I disagree with you, this is wrong..."></textarea>
+                <button onclick="analyzeSoft()" class="mt-4 bg-pink-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-pink-700 transition">Check Tone</button>
+                
+                <div id="soft-result" class="hidden mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <p class="text-xs font-bold text-yellow-700 uppercase">Improvement Needed:</p>
+                    <p class="text-sm text-slate-800 mt-1">"I have a different perspective on this. Can we explore other options?"</p>
+                    <p class="text-xs text-slate-500 mt-2">Tone: Constructive & Polite</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="soft-mock" class="view-section hidden fade-in">
+             <h2 class="text-2xl font-bold mb-6 text-slate-800">🧑‍💼 Mock HR Round</h2>
+             <div class="bg-white p-8 rounded-xl shadow-lg border border-slate-200 max-w-xl text-center">
+                <p class="text-sm text-slate-500 mb-6">Practice typical HR questions: "Tell me about yourself", "Weaknesses", etc.</p>
+                <div class="bg-slate-50 p-8 rounded-lg mb-6 flex flex-col items-center justify-center border border-dashed border-slate-300">
+                    <i class="ph-duotone ph-webcam text-5xl text-slate-400 mb-3"></i>
+                    <p class="text-xs text-slate-500 font-medium">Camera permission required for AI analysis</p>
+                </div>
+                <button onclick="bookSlot(event, 'HR Round')" class="w-full bg-slate-900 text-white py-3 rounded-lg font-bold hover:bg-slate-800 transition">Schedule HR Interview</button>
+            </div>
+        </div>
+
+        <!-- ================== COURSES MODULE ================== -->
+        <div id="courses-home" class="view-section hidden fade-in">
+            <h2 class="text-3xl font-bold mb-8 text-slate-800 border-l-8 border-purple-600 pl-4">Learning Center</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div onclick="navigateTo('courses-list')" class="bg-white rounded-2xl p-8 shadow-md hover:shadow-xl transition-all cursor-pointer border border-slate-100 group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="ph-fill ph-book-open text-9xl text-blue-600"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6 text-2xl">
+                            <i class="ph-fill ph-book-open"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-3">Courses</h3>
+                        <p class="text-slate-600 mb-4">Explore job-oriented courses in Web Dev, AI, Data Science, and more.</p>
+                        <span class="text-blue-600 font-medium flex items-center">Explore <i class="ph-bold ph-caret-right ml-1"></i></span>
+                    </div>
+                </div>
+
+                <div onclick="navigateTo('roadmaps-home')" class="bg-white rounded-2xl p-8 shadow-md hover:shadow-xl transition-all cursor-pointer border border-slate-100 group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="ph-fill ph-map-trifold text-9xl text-purple-600"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mb-6 text-2xl">
+                            <i class="ph-fill ph-map-trifold"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-3">Roadmaps</h3>
+                        <p class="text-slate-600 mb-4">Step-by-step guides with time-based plans to land your dream role.</p>
+                        <span class="text-purple-600 font-medium flex items-center">View Roadmaps <i class="ph-bold ph-caret-right ml-1"></i></span>
+                    </div>
+                </div>
+
+                <div onclick="navigateTo('placement-home')" class="bg-white rounded-2xl p-8 shadow-md hover:shadow-xl transition-all cursor-pointer border border-slate-100 group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="ph-fill ph-briefcase text-9xl text-green-600"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="w-14 h-14 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mb-6 text-2xl">
+                            <i class="ph-fill ph-briefcase"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-3">Placement Basics</h3>
+                        <p class="text-slate-600 mb-4">Master Aptitude, English, and Coding basics for interviews.</p>
+                        <span class="text-green-600 font-medium flex items-center">Start Prep <i class="ph-bold ph-caret-right ml-1"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="courses-list" class="view-section hidden fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">Available Courses</h2>
+            <div id="courses-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+
+        <div id="courses-detail-view" class="view-section hidden fade-in">
+             <div id="course-detail-content"></div>
+        </div>
+
+        <!-- ================== ROADMAPS (UPDATED) ================== -->
+        <div id="roadmaps-home" class="view-section hidden fade-in">
+            <h2 class="text-3xl font-bold mb-2 text-slate-800">Career Roadmaps</h2>
+            <p class="text-slate-500 mb-8">Comprehensive guides powered by <a href="https://roadmap.sh" target="_blank" class="text-purple-600 font-bold hover:underline">roadmap.sh</a> logic.</p>
+            <div id="roadmaps-container" class="space-y-6"></div>
+        </div>
+
+        <div id="placement-home" class="view-section hidden fade-in">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">Placement Preparation</h2>
+            <div id="placement-container" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
+        </div>
+
+        <!-- ================== HIGHER STUDIES ================== -->
+        <div id="higher-studies-home" class="view-section hidden fade-in">
+            <h2 class="text-3xl font-bold mb-8 text-slate-800 border-l-8 border-yellow-500 pl-4">Higher Studies Hub</h2>
+            <p class="mb-8 text-slate-600 text-lg">Explore education options after B.Tech to specialize and boost your career.</p>
+            
+            <div id="higher-studies-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <div id="higher-studies-detail" class="view-section hidden fade-in">
+            <div id="study-detail-content" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <!-- ================== MENTORS ================== -->
+        <!-- Step 1: Mentor Domains -->
+        <div id="mentors-home" class="view-section hidden fade-in">
+            <h2 class="text-3xl font-bold mb-8 text-slate-800 border-l-8 border-indigo-600 pl-4">Find Your Mentor</h2>
+            <p class="mb-8 text-slate-600 text-lg">Connect with seniors and professionals to guide your career path.</p>
+            
+            <h3 class="text-xl font-bold mb-4 text-slate-700">Select a Career Domain</h3>
+            <div id="mentor-domains-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <!-- Step 2: Mentor List -->
+        <div id="mentor-list-view" class="view-section hidden fade-in">
+            <div class="flex items-center justify-between mb-6">
+                <h2 id="mentor-list-title" class="text-2xl font-bold text-slate-800">Available Mentors</h2>
+                <span class="text-sm bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-medium">Verified Professionals</span>
+            </div>
+            <div id="mentor-list-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <!-- Step 3: Booking -->
+        <div id="mentor-booking-view" class="view-section hidden fade-in">
+            <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-slate-100">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800">Book a Session</h2>
+                    <p class="text-slate-500 mt-2" id="booking-mentor-name">with Mentor Name</p>
+                </div>
+                
+                <form onsubmit="confirmBooking(event)" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Select Date</label>
+                            <input type="date" required class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Time Slot</label>
+                            <select class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
+                                <option>10:00 AM - 10:30 AM</option>
+                                <option>02:00 PM - 02:30 PM</option>
+                                <option>05:00 PM - 05:30 PM</option>
+                                <option>07:00 PM - 07:30 PM</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Mode of Communication</label>
+                        <div class="grid grid-cols-3 gap-4">
+                            <label class="border rounded-lg p-3 flex flex-col items-center cursor-pointer hover:bg-slate-50 peer-checked:border-indigo-600">
+                                <input type="radio" name="mode" class="mb-2 accent-indigo-600" checked>
+                                <i class="ph-fill ph-chat-circle-text text-2xl text-slate-400"></i>
+                                <span class="text-xs font-medium">Chat</span>
+                            </label>
+                            <label class="border rounded-lg p-3 flex flex-col items-center cursor-pointer hover:bg-slate-50">
+                                <input type="radio" name="mode" class="mb-2 accent-indigo-600">
+                                <i class="ph-fill ph-phone text-2xl text-slate-400"></i>
+                                <span class="text-xs font-medium">Audio</span>
+                            </label>
+                            <label class="border rounded-lg p-3 flex flex-col items-center cursor-pointer hover:bg-slate-50">
+                                <input type="radio" name="mode" class="mb-2 accent-indigo-600">
+                                <i class="ph-fill ph-video-camera text-2xl text-slate-400"></i>
+                                <span class="text-xs font-medium">Video</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Topics to Discuss</label>
+                        <textarea rows="3" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm" placeholder="Briefly describe what you want to ask..."></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">Confirm Booking</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ================== OTHER PAGES ================== -->
+        <div id="application-form" class="view-section hidden fade-in">
+            <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-xl border-t-4 border-blue-600">
+                <h2 class="text-2xl font-bold mb-2">Application Form</h2>
+                <p id="apply-role-title" class="text-slate-500 mb-6">Applying for...</p>
+                <form onsubmit="handleApply(event)" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium">Full Name</label><input type="text" required class="mt-1 block w-full border border-slate-300 rounded-md p-2"></div>
+                        <div><label class="block text-sm font-medium">Phone</label><input type="tel" required class="mt-1 block w-full border border-slate-300 rounded-md p-2"></div>
+                    </div>
+                    <div><label class="block text-sm font-medium">Email</label><input type="email" required class="mt-1 block w-full border border-slate-300 rounded-md p-2"></div>
+                    <div><label class="block text-sm font-medium">CGPA</label><input type="number" step="0.1" id="applicant-cgpa" required class="mt-1 block w-full border border-slate-300 rounded-md p-2"></div>
+                    <div class="pt-4"><button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">Submit</button></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ================== UPDATED JOB PREDICTOR (COMPLEX VERSION) ================== -->
+        <div id="prediction" class="view-section hidden fade-in max-w-4xl mx-auto">
+            <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100">
+                <header class="mb-8 border-b border-slate-100 pb-4">
+                    <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                        <i class="ph-fill ph-crystal-ball text-blue-600"></i> Job Predictor
+                    </h2>
+                    <p class="text-slate-500 mt-2">Analyze your skills and resume to find your perfect job match.</p>
+                </header>
+
+                <form id="job-form" onsubmit="handlePrediction(event)">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <!-- 1. Personal -->
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-700 mb-4 flex items-center gap-2"><i class="ph-bold ph-user text-blue-500"></i> Personal Details</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-600 mb-1">Full Name</label>
+                                    <input type="text" required class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500" placeholder="John Doe">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-600 mb-1">Degree & Spec</label>
+                                    <input type="text" required class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500" placeholder="B.Tech CSE">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-600 mb-1">Target Role</label>
+                                    <select id="target-role" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white">
+                                        <option value="sde">Software Developer (SDE)</option>
+                                        <option value="web">Full Stack Developer</option>
+                                        <option value="data">Data Scientist/Analyst</option>
+                                        <option value="devops">DevOps Engineer</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Skills & Exp -->
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-700 mb-4 flex items-center gap-2"><i class="ph-bold ph-code text-blue-500"></i> Skills & Experience</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-600 mb-1">Tech Skills (Comma separated)</label>
+                                    <textarea id="skills-input" rows="2" class="w-full border border-slate-300 rounded-lg p-2.5" placeholder="Java, Python, React, SQL..."></textarea>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-600 mb-1">Internships</label>
+                                        <select id="internships" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white">
+                                            <option value="0">None</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2+</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-600 mb-1">Comm. Level</label>
+                                        <select id="communication" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white">
+                                            <option value="avg">Average</option>
+                                            <option value="good">Good</option>
+                                            <option value="exc">Excellent</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Resume -->
+                    <div class="mb-8">
+                         <h3 class="font-bold text-lg text-slate-700 mb-4 flex items-center gap-2"><i class="ph-bold ph-file-pdf text-blue-500"></i> Resume Upload</h3>
+                         <div class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:bg-slate-50 transition cursor-pointer relative">
+                            <input type="file" id="resume-upload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            <i class="ph-duotone ph-cloud-arrow-up text-4xl text-slate-400 mb-2"></i>
+                            <p class="text-slate-600 font-medium">Click to upload Resume (PDF)</p>
+                            <p class="text-xs text-slate-400 mt-1">AI will scan for keywords</p>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg hover:shadow-blue-200 flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-lightning"></i> Analyze Profile & Predict
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- View 2: Loading (Predictor) -->
+        <div id="prediction-loading" class="view-section hidden fade-in flex flex-col items-center justify-center py-20">
+            <div class="w-20 h-20 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-6"></div>
+            <h2 class="text-2xl font-bold text-slate-800 animate-pulse">Analyzing Profile...</h2>
+            <p class="text-slate-500 mt-2">Matching skills with 500+ job descriptions.</p>
+        </div>
+
+        <!-- View 3: Result (Predictor) -->
+        <div id="prediction-result" class="view-section hidden fade-in max-w-5xl mx-auto">
+            <button onclick="navigateTo('prediction')" class="mb-6 flex items-center text-slate-500 hover:text-blue-600 font-medium transition">
+                <i class="ph-bold ph-arrow-left mr-2"></i> Back to Form
+            </button>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Left: Score -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 text-center">
+                        <h3 class="text-slate-500 font-bold mb-4 uppercase text-xs tracking-wider">Readiness Score</h3>
+                        <div class="relative">
+                            <svg viewBox="0 0 36 36" class="circular-chart text-blue-600 w-48 h-48 mx-auto">
+                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="score-circle" class="circle" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke="currentColor" />
+                                <text x="18" y="20.35" class="percentage text-3xl font-bold fill-slate-800" id="score-text">0%</text>
+                            </svg>
+                        </div>
+                        <div id="readiness-badge" class="mt-4 inline-block px-4 py-1 bg-slate-100 text-slate-600 rounded-full text-sm font-bold">Calculating...</div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <h4 class="font-bold text-slate-800 mb-4">Breakdown</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-xs font-bold text-slate-500 mb-1"><span>Tech Skills</span><span id="tech-score">0/10</span></div>
+                                <div class="w-full bg-slate-100 h-2 rounded-full"><div id="tech-bar" class="h-2 rounded-full bg-blue-500 w-0 transition-all duration-1000"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs font-bold text-slate-500 mb-1"><span>Communication</span><span id="comm-score">0/10</span></div>
+                                <div class="w-full bg-slate-100 h-2 rounded-full"><div id="comm-bar" class="h-2 rounded-full bg-purple-500 w-0 transition-all duration-1000"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs font-bold text-slate-500 mb-1"><span>Resume</span><span id="resume-score">0/10</span></div>
+                                <div class="w-full bg-slate-100 h-2 rounded-full"><div id="resume-bar" class="h-2 rounded-full bg-green-500 w-0 transition-all duration-1000"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Details -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Ready View -->
+                    <div id="res-ready" class="hidden space-y-6">
+                        <div class="bg-green-50 border border-green-200 p-6 rounded-2xl flex items-start gap-4">
+                            <i class="ph-fill ph-check-circle text-4xl text-green-600 mt-1"></i>
+                            <div>
+                                <h3 class="text-xl font-bold text-green-800">You are Job Ready!</h3>
+                                <p class="text-green-700 mt-1">Your profile strongly matches market requirements for <span class="font-bold" id="ready-role"></span>.</p>
+                            </div>
+                        </div>
+                        
+                        <h3 class="font-bold text-xl text-slate-800">Top Company Matches</h3>
+                        <div id="company-matches" class="grid md:grid-cols-2 gap-4">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Not Ready View -->
+                    <div id="res-not-ready" class="hidden space-y-6">
+                        <div class="bg-orange-50 border border-orange-200 p-6 rounded-2xl flex items-start gap-4">
+                            <i class="ph-fill ph-warning-circle text-4xl text-orange-500 mt-1"></i>
+                            <div>
+                                <h3 class="text-xl font-bold text-orange-800">Not Quite Ready Yet</h3>
+                                <p class="text-orange-700 mt-1">We found some gaps in your profile. Follow the plan below to get hired.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200">
+                            <h4 class="font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="ph-fill ph-list-magnifying-glass text-blue-500"></i> Smart Guidance: Gap Analysis</h4>
+                            <ul id="gap-list" class="space-y-3">
+                                <!-- Injected JS -->
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="font-bold text-xl text-slate-800 mb-4">Personalized Roadmap</h4>
+                            <div class="space-y-4">
+                                <div class="flex gap-4">
+                                    <div class="flex flex-col items-center">
+                                        <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">1</div>
+                                        <div class="h-full w-0.5 bg-slate-200 my-1"></div>
+                                    </div>
+                                    <div class="bg-white p-4 rounded-xl border border-slate-200 w-full hover:border-blue-400 transition cursor-pointer" onclick="navigateTo('roadmaps-home')">
+                                        <h5 class="font-bold text-slate-800">Learn Critical Skills</h5>
+                                        <p class="text-sm text-slate-500">Check the detailed roadmap for your role.</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-4">
+                                    <div class="flex flex-col items-center">
+                                        <div class="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">2</div>
+                                        <div class="h-full w-0.5 bg-slate-200 my-1"></div>
+                                    </div>
+                                    <div class="bg-white p-4 rounded-xl border border-slate-200 w-full hover:border-purple-400 transition cursor-pointer" onclick="navigateTo('tech-test')">
+                                        <h5 class="font-bold text-slate-800">Verify Knowledge</h5>
+                                        <p class="text-sm text-slate-500">Take a practice test to prove your skills.</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-4">
+                                    <div class="flex flex-col items-center">
+                                        <div class="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold">3</div>
+                                    </div>
+                                    <div class="bg-white p-4 rounded-xl border border-slate-200 w-full">
+                                        <h5 class="font-bold text-slate-800">Re-evaluate</h5>
+                                        <p class="text-sm text-slate-500">Come back in 30 days to check your score.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================== FUTURE TRENDS 2026 ================== -->
+        <div id="future-trends" class="view-section hidden fade-in">
+            <h2 class="text-3xl font-bold mb-8 text-slate-800 border-l-8 border-pink-600 pl-4">🚀 Future Trends 2026</h2>
+            <p class="text-slate-600 mb-8 text-lg">Explore emerging technologies, career opportunities, and skills that will shape the job market in 2026 and beyond.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg transition">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4 text-2xl">
+                        <i class="ph-fill ph-brain"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">AI & Machine Learning</h3>
+                    <p class="text-slate-500 text-sm">Advanced AI models, ethical AI development, and AI-driven automation will dominate. Skills in prompt engineering, AI ethics, and multimodal AI are in high demand.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg transition">
+                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mb-4 text-2xl">
+                        <i class="ph-fill ph-leaf"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">Sustainable Tech</h3>
+                    <p class="text-slate-500 text-sm">Green computing, carbon-neutral data centers, and sustainable software development. Expertise in energy-efficient algorithms and eco-friendly tech solutions.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg transition">
+                    <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mb-4 text-2xl">
+                        <i class="ph-fill ph-vr-headset"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">Metaverse & VR/AR</h3>
+                    <p class="text-slate-500 text-sm">Virtual worlds, augmented reality applications, and immersive experiences. Skills in 3D modeling, WebXR, and metaverse development platforms.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg transition">
+                    <div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center mb-4 text-2xl">
+                        <i class="ph-fill ph-atom"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">Quantum Computing</h3>
+                    <p class="text-slate-500 text-sm">Quantum algorithms, quantum cryptography, and hybrid quantum-classical systems. Early adopters in quantum software development will lead the field.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg transition">
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-xl flex items-center justify-center mb-4 text-2xl">
+                        <i class="ph-fill ph-shield-check"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">Cybersecurity 2.0</h3>
+                    <p class="text-slate-500 text-sm">AI-powered security, zero-trust architectures, and blockchain-based security. Focus on proactive threat detection and privacy-preserving technologies.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg transition">
+                    <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mb-4 text-2xl">
+                        <i class="ph-fill ph-cpu"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">Edge Computing</h3>
+                    <p class="text-slate-500 text-sm">Distributed computing at the network edge, IoT integration, and real-time data processing. Skills in edge AI and low-latency systems.</p>
+                </div>
+            </div>
+
+            <div class="mt-12 bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-2xl border border-slate-200">
+                <h3 class="text-2xl font-bold text-slate-800 mb-4">Career Opportunities in 2026</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-bold text-lg text-slate-700 mb-2">High-Demand Roles</h4>
+                        <ul class="space-y-1 text-slate-600">
+                            <li>• AI Ethics Specialist</li>
+                            <li>• Quantum Software Engineer</li>
+                            <li>• Metaverse Developer</li>
+                            <li>• Sustainable Tech Consultant</li>
+                            <li>• Edge Computing Architect</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg text-slate-700 mb-2">Emerging Skills</h4>
+                        <ul class="space-y-1 text-slate-600">
+                            <li>• Prompt Engineering</li>
+                            <li>• Quantum Programming</li>
+                            <li>• WebXR Development</li>
+                            <li>• Green Coding Practices</li>
+                            <li>• Decentralized Systems</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FUTUREHIRE CHATBOT WIDGET -->
+    <div class="chat-widget">
+        <div id="chat-window" class="chat-window fade-in">
+            <div class="chat-header">
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-robot text-2xl"></i>
+                    <div>
+                        <h4 class="font-bold text-sm">FutureHire Assistant</h4>
+                        <span class="text-xs opacity-80">Online | Career Guide</span>
+                    </div>
+                </div>
+                <button onclick="toggleChat()" class="hover:bg-white/20 p-1 rounded"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <div id="chat-body" class="chat-body custom-scrollbar">
+                <div class="msg msg-bot">
+                    Hi! I'm your FUTUREHIRE Career Assistant. I can help you with Placements, Skills, Courses, and Platform navigation. How can I assist you today?
+                </div>
+                <div class="mt-2">
+                    <span class="suggestion-chip" onclick="handleChipClick('What is Job Predictor?')">What is Job Predictor?</span>
+                    <span class="suggestion-chip" onclick="handleChipClick('How to prepare for placements?')">Placement Prep</span>
+                    <span class="suggestion-chip" onclick="handleChipClick('Suggest me a course')">Suggest Courses</span>
+                </div>
+            </div>
+            <div class="chat-footer">
+                <input type="text" id="chat-input" class="chat-input" placeholder="Ask about career, skills..." onkeypress="handleChatEnter(event)">
+                <button onclick="sendMessage()" class="bg-blue-600 text-white rounded-full w-9 h-9 flex items-center justify-center hover:bg-blue-700 transition"><i class="ph-fill ph-paper-plane-right"></i></button>
+            </div>
+        </div>
+        <div class="chat-btn" onclick="toggleChat()">
+            <i class="ph-fill ph-chat-teardrop-text"></i>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA & SETUP ---
+        const baseCompanies = [
+            { 
+                name: "TCS", 
+                type: "Service", 
+                est: 1968, 
+                hq: "Mumbai", 
+                role: "Ninja / Digital", 
+                pkg: "3.6 - 7.0 LPA",
+                history: "Tata Consultancy Services (TCS) is an Indian multinational information technology (IT) services and consulting company headquartered in Mumbai.",
+                branches: ["Mumbai", "Delhi", "Bangalore", "Chennai", "Hyderabad", "Pune"],
+                hiringPattern: { cgpa: "6.0+", dsa: "Basic", projects: "Preferred", communication: "Good" },
+                requiredSkills: ["Java", "Python", "SQL", "Communication"]
+            },
+            { 
+                name: "Infosys", 
+                type: "Service", 
+                est: 1981, 
+                hq: "Bangalore", 
+                role: "Systems Engineer", 
+                pkg: "3.6 - 9.0 LPA",
+                history: "Infosys Limited is an Indian multinational corporation that provides business consulting, information technology and next-generation digital services.",
+                branches: ["Bangalore", "Mysore", "Chennai", "Pune", "Hyderabad"],
+                hiringPattern: { cgpa: "6.5+", dsa: "Intermediate", projects: "Required", communication: "Excellent" },
+                requiredSkills: ["Java", "C++", "Data Structures", "Problem Solving"]
+            },
+            { 
+                name: "Zoho", 
+                type: "Product", 
+                est: 1996, 
+                hq: "Chennai", 
+                role: "Software Developer", 
+                pkg: "6.0 - 10.0 LPA",
+                history: "Zoho Corporation is an Indian software development company with its global headquarters in Chennai. It develops web-based business tools and applications.",
+                branches: ["Chennai", "Pleasanton", "Austin", "London"],
+                hiringPattern: { cgpa: "7.0+", dsa: "Advanced", projects: "Strong Portfolio", communication: "Good" },
+                requiredSkills: ["Java", "JavaScript", "React", "Node.js"]
+            },
+            { 
+                name: "Accenture", 
+                type: "Service", 
+                est: 1989, 
+                hq: "Dublin", 
+                role: "ASE / FSE", 
+                pkg: "4.5 - 6.5 LPA",
+                history: "Accenture plc is an Irish-American professional services company based in Dublin, specializing in information technology (IT) services and consulting.",
+                branches: ["Mumbai", "Bangalore", "Gurgaon", "Chennai", "Hyderabad"],
+                hiringPattern: { cgpa: "6.0+", dsa: "Basic", projects: "Preferred", communication: "Excellent" },
+                requiredSkills: ["Java", "Python", "SQL", "Business Analysis"]
+            },
+            { 
+                name: "Wipro", 
+                type: "Service", 
+                est: 1945, 
+                hq: "Bangalore", 
+                role: "Project Engineer", 
+                pkg: "3.5 LPA",
+                history: "Wipro Limited is an Indian multinational corporation that provides information technology, consulting and business process services.",
+                branches: ["Bangalore", "Mumbai", "Delhi", "Chennai", "Hyderabad"],
+                hiringPattern: { cgpa: "6.0+", dsa: "Basic", projects: "Optional", communication: "Good" },
+                requiredSkills: ["Java", "C#", "SQL", "Testing"]
+            },
+            { 
+                name: "Amazon", 
+                type: "Product", 
+                est: 1994, 
+                hq: "Seattle", 
+                role: "SDE I", 
+                pkg: "25.0 - 45.0 LPA",
+                history: "Amazon.com, Inc. is an American multinational technology company which focuses on e-commerce, cloud computing, digital streaming, and artificial intelligence.",
+                branches: ["Seattle", "Bangalore", "Hyderabad", "Chennai", "Gurgaon"],
+                hiringPattern: { cgpa: "7.0+", dsa: "Advanced", projects: "Strong", communication: "Excellent" },
+                requiredSkills: ["C++", "Java", "Algorithms", "System Design"]
+            },
+            { 
+                name: "Microsoft", 
+                type: "Product", 
+                est: 1975, 
+                hq: "Redmond", 
+                role: "SDE I", 
+                pkg: "40.0 - 50.0 LPA",
+                history: "Microsoft Corporation is an American multinational technology corporation which produces computer software, consumer electronics, personal computers, and related services.",
+                branches: ["Redmond", "Bangalore", "Hyderabad", "Noida", "Gurgaon"],
+                hiringPattern: { cgpa: "7.5+", dsa: "Expert", projects: "Outstanding", communication: "Excellent" },
+                requiredSkills: ["C#", ".NET", "Azure", "Data Structures"]
+            },
+            { 
+                name: "Deloitte", 
+                type: "Service", 
+                est: 1845, 
+                hq: "London", 
+                role: "Analyst", 
+                pkg: "6.0 - 8.0 LPA",
+                history: "Deloitte Touche Tohmatsu Limited, commonly referred to as Deloitte, is a multinational professional services network.",
+                branches: ["London", "Mumbai", "Bangalore", "Gurgaon", "Chennai"],
+                hiringPattern: { cgpa: "6.5+", dsa: "Basic", projects: "Preferred", communication: "Excellent" },
+                requiredSkills: ["Excel", "SQL", "Python", "Analytics"]
+            },
+            { 
+                name: "Capgemini", 
+                type: "Service", 
+                est: 1967, 
+                hq: "Paris", 
+                role: "Analyst", 
+                pkg: "4.0 - 7.5 LPA",
+                history: "Capgemini SE is a French multinational information technology (IT) services and consulting company headquartered in Paris.",
+                branches: ["Paris", "Mumbai", "Bangalore", "Chennai", "Pune"],
+                hiringPattern: { cgpa: "6.0+", dsa: "Intermediate", projects: "Preferred", communication: "Good" },
+                requiredSkills: ["Java", "SAP", "Cloud", "Consulting"]
+            },
+            { 
+                name: "IBM", 
+                type: "Product", 
+                est: 1911, 
+                hq: "New York", 
+                role: "Assoc. Developer", 
+                pkg: "4.5 - 9.0 LPA",
+                history: "International Business Machines Corporation (IBM) is an American multinational technology company headquartered in Armonk, New York.",
+                branches: ["New York", "Bangalore", "Delhi", "Chennai", "Pune"],
+                hiringPattern: { cgpa: "6.5+", dsa: "Advanced", projects: "Required", communication: "Good" },
+                requiredSkills: ["Java", "AI", "Cloud", "Blockchain"]
+            }
+        ];
+
+        const allCompanies = [...baseCompanies];
+        for(let i=11; i<=55; i++) {
+            allCompanies.push({
+                name: `Tech Corp ${i}`,
+                type: i % 2 === 0 ? "Product" : "Startup",
+                est: 2010 + (i % 10),
+                hq: i % 3 === 0 ? "Bangalore" : "Gurgaon",
+                role: "Jr. Developer",
+                pkg: `${4 + (i%5)}.0 LPA`
+            });
+        }
+
+        const internships = [
+            { id: 1, company: "Zoho", role: "Web Dev Intern", dur: "6 Months", stipend: "₹15,000", mode: "In-Office" },
+            { id: 2, company: "Swiggy", role: "Data Analyst Intern", dur: "3 Months", stipend: "₹25,000", mode: "Remote" },
+            { id: 3, company: "Cred", role: "Backend Intern", dur: "6 Months", stipend: "₹35,000", mode: "Hybrid" },
+            { id: 4, company: "Tech Corp 12", role: "React Intern", dur: "2 Months", stipend: "₹10,000", mode: "Remote" },
+            { id: 5, company: "TCS", role: "Research Intern", dur: "3 Months", stipend: "Unpaid", mode: "Hybrid" },
+        ];
+
+        // --- COURSES MODULE DATA ---
+        const coursesData = [
+            { id: 1, title: "Web Development", icon: "ph-globe", color: "bg-blue-100 text-blue-600", desc: "Master HTML, CSS, JS & React.", playlist: ["HTML/CSS Basics (2h)", "JS Fundamentals (4h)", "React JS (5h)"], notes: ["DOM Manipulation", "CSS Box Model", "ES6+ Features"] },
+            { id: 2, title: "Data Analyst", icon: "ph-database", color: "bg-green-100 text-green-600", desc: "SQL, Python, Excel & PowerBI.", playlist: ["Excel for Data (3h)", "SQL Mastery (6h)", "Python Pandas (8h)"], notes: ["SQL Cheatsheet", "Data Cleaning", "Visualization Tips"] },
+            { id: 3, title: "Software Developer", icon: "ph-code", color: "bg-purple-100 text-purple-600", desc: "DSA, System Design & Core CS.", playlist: ["DSA 101 (10h)", "Algorithms (8h)"], notes: ["Big O Notation", "Design Patterns"] },
+            { id: 4, title: "App Development", icon: "ph-device-mobile", color: "bg-orange-100 text-orange-600", desc: "Flutter & React Native.", playlist: ["Flutter Basics", "State Management"], notes: ["Widget Tree", "Native Bridges"] },
+            { id: 5, title: "Cloud Computing", icon: "ph-cloud", color: "bg-sky-100 text-sky-600", desc: "AWS, Azure & Google Cloud.", playlist: ["AWS Essentials", "Docker & Kubernetes"], notes: ["EC2 Instances", "Serverless"] },
+            { id: 6, title: "Cybersecurity", icon: "ph-shield-check", color: "bg-red-100 text-red-600", desc: "Ethical Hacking & Network Security.", playlist: ["Network Security", "Kali Linux"], notes: ["OWASP Top 10", "Cryptography"] },
+            { id: 7, title: "AI & Machine Learning", icon: "ph-brain", color: "bg-indigo-100 text-indigo-600", desc: "Neural Networks & Deep Learning.", playlist: ["ML Basics", "Neural Networks"], notes: ["Gradient Descent", "TensorFlow"] },
+            { id: 8, title: "Other Courses", icon: "ph-stack", color: "bg-slate-100 text-slate-600", desc: "Industry relevant skills.", playlist: [], notes: [] }
+        ];
+
+        // --- UPDATED ROADMAPS DATA (Includes roadmap.sh links) ---
+        const roadmapsData = [
+            { 
+                title: "Frontend Developer", 
+                link: "https://roadmap.sh/frontend",
+                color: "purple",
+                steps: [{ t: "HTML/CSS/JS", time: "Month 1" }, { t: "React/Vue", time: "Month 2-3" }, { t: "Build Portfolio", time: "Month 4" }] 
+            },
+            { 
+                title: "Backend Developer", 
+                link: "https://roadmap.sh/backend",
+                color: "slate",
+                steps: [{ t: "Node.js/Python", time: "Month 1-2" }, { t: "Databases (SQL)", time: "Month 3" }, { t: "APIs & Auth", time: "Month 4" }] 
+            },
+            { 
+                title: "DevOps Engineer", 
+                link: "https://roadmap.sh/devops",
+                color: "blue",
+                steps: [{ t: "Linux & Terminal", time: "Month 1" }, { t: "Docker/K8s", time: "Month 2-3" }, { t: "CI/CD & Cloud", time: "Month 4" }] 
+            },
+            { 
+                title: "AI & Data Scientist", 
+                link: "https://roadmap.sh/ai-data-scientist",
+                color: "emerald",
+                steps: [{ t: "Python & Maths", time: "Month 1-2" }, { t: "ML Algorithms", time: "Month 3-4" }, { t: "Deep Learning", time: "Month 5+" }] 
+            },
+            { 
+                title: "Blockchain", 
+                link: "https://roadmap.sh/blockchain",
+                color: "indigo",
+                steps: [{ t: "Solidity/Rust", time: "Month 1-2" }, { t: "Smart Contracts", time: "Month 3" }, { t: "dApps", time: "Month 4" }] 
+            },
+            { 
+                title: "Cyber Security", 
+                link: "https://roadmap.sh/cyber-security",
+                color: "red",
+                steps: [{ t: "Networking", time: "Month 1" }, { t: "Ethical Hacking", time: "Month 2-3" }, { t: "Pen Testing", time: "Month 4" }] 
+            }
+        ];
+
+        const placementPrepData = [
+            { title: "Aptitude", icon: "ph-calculator", topics: ["Quantitative Aptitude", "Logical Reasoning", "Data Interpretation"] },
+            { title: "Basic English", icon: "ph-book-bookmark", topics: ["Grammar Rules", "Vocabulary Builder", "Verbal Ability"] },
+            { title: "Basic Coding", icon: "ph-terminal", topics: ["Programming Fundamentals", "Simple Problem Solving", "Debugging Basics"] },
+            { title: "Mock Interview", icon: "ph-chats", topics: ["HR Questions", "Technical Basics", "Behavioral Questions"] }
+        ];
+
+        // --- HIGHER STUDIES MODULE DATA ---
+        const higherStudiesData = [
+            { id: 1, title: "M.Tech", icon: "ph-student", color: "text-blue-600 bg-blue-100", desc: "Master of Technology for specialization.",  
+              details: { what: "Post-grad degree in Engg.", who: "Students wanting deep technical knowledge.", exam: "GATE", process: "Clear GATE -> COAP Counselling -> IITs/NITs", opp: "R&D Jobs, Teaching, Senior Tech Roles" } },
+            { id: 2, title: "GATE", icon: "ph-book-open-text", color: "text-orange-600 bg-orange-100", desc: "Graduate Aptitude Test in Engineering.",
+              details: { what: "National level exam.", who: "Aspirants for PSU Jobs or M.Tech.", exam: "GATE (Once a year)", process: "Apply Online -> Exam -> Scorecard", opp: "PSUs (ONGC, NTPC), M.Tech, PhD" } },
+            { id: 3, title: "MBA", icon: "ph-chart-bar", color: "text-purple-600 bg-purple-100", desc: "Master of Business Administration.",
+              details: { what: "Business & Management degree.", who: "Engineers interested in Management.", exam: "CAT, XAT, GMAT", process: "Exam -> GD/PI -> IIMs/B-Schools", opp: "Consulting, Product Mgmt, Finance" } },
+            { id: 4, title: "MS (Abroad)", icon: "ph-globe-hemisphere-west", color: "text-teal-600 bg-teal-100", desc: "Master of Science in foreign universities.",
+              details: { what: "Research-based masters abroad.", who: "Global exposure seekers.", exam: "GRE, TOEFL/IELTS", process: "Exams -> SOP/LOR -> Application -> Visa", opp: "Global Tech Jobs, Research" } },
+            { id: 5, title: "PhD", icon: "ph-scroll", color: "text-rose-600 bg-rose-100", desc: "Doctor of Philosophy (Research).",
+              details: { what: "Highest academic degree.", who: "Passion for Research/Teaching.", exam: "NET, GATE, Interviews", process: "Proposal -> Entrance -> Interview", opp: "Professor, Scientist, R&D Head" } },
+            { id: 6, title: "Govt. Exams", icon: "ph-bank", color: "text-slate-600 bg-slate-100", desc: "UPSC, IES, SSC CGL, Banking.",
+              details: { what: "Public Service Exams.", who: "Service-oriented students.", exam: "UPSC, ESE, SSC", process: "Prelims -> Mains -> Interview", opp: "IAS, IES Officer, Bank PO" } }
+        ];
+
+        // --- MENTORS MODULE DATA ---
+        const mentorDomains = [
+            { id: 'software', title: "Software Developer", icon: "ph-code", count: "12 Mentors" },
+            { id: 'web', title: "Web Developer", icon: "ph-globe", count: "8 Mentors" },
+            { id: 'data', title: "Data Analyst", icon: "ph-chart-pie-slice", count: "10 Mentors" },
+            { id: 'cloud', title: "Cloud Engineer", icon: "ph-cloud", count: "5 Mentors" },
+            { id: 'core', title: "Core Engineering", icon: "ph-circuitry", count: "7 Mentors" },
+            { id: 'study', title: "Higher Studies", icon: "ph-student", count: "9 Mentors" }
+        ];
+
+        const mentorsList = [
+            { id: 1, name: "Ankit Sharma", role: "SDE II", company: "Amazon", exp: "4 Years", domain: "software", areas: ["DSA", "System Design"] },
+            { id: 2, name: "Priya Verma", role: "Frontend Lead", company: "Swiggy", exp: "6 Years", domain: "web", areas: ["React", "Performance"] },
+            { id: 3, name: "Rahul Singh", role: "Data Scientist", company: "Uber", exp: "3 Years", domain: "data", areas: ["ML", "Python"] },
+            { id: 4, name: "Sneha Gupta", role: "Cloud Architect", company: "Microsoft", exp: "8 Years", domain: "cloud", areas: ["Azure", "DevOps"] },
+            { id: 5, name: "Vikram Malhotra", role: "Design Engineer", company: "Texas Instruments", exp: "5 Years", domain: "core", areas: ["VLSI", "Embedded"] },
+            { id: 6, name: "Dr. Aditi Roy", role: "PhD Scholar", company: "IIT Bombay", exp: "Research", domain: "study", areas: ["GATE", "Research Papers"] }
+        ];
+
+        // --- API FUNCTIONS ---
+        const API_BASE = 'http://localhost:5000/api';
+        
+        async function apiCall(endpoint, options = {}) {
+            const token = localStorage.getItem('token');
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token && { 'Authorization': `Bearer ${token}` })
+                }
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, { ...defaultOptions, ...options });
+                const data = await response.json();
+                return { data, ok: response.ok };
+            } catch (error) {
+                console.error('API call failed:', error);
+                return { data: null, ok: false };
+            }
+        }
+
+        async function loadCompanies() {
+            const { data, ok } = await apiCall('/companies');
+            if (ok) {
+                allCompanies = data;
+                renderCompanies();
+            }
+        }
+
+        async function loadSkills() {
+            const { data: technical, ok: techOk } = await apiCall('/skills/technical');
+            const { data: communication, ok: commOk } = await apiCall('/skills/communication');
+            const { data: soft, ok: softOk } = await apiCall('/skills/soft');
+            
+            if (techOk) technicalSkills = technical;
+            if (commOk) communicationSkills = communication;
+            if (softOk) softSkills = soft;
+        }
+
+        async function loadCourses() {
+            const { data, ok } = await apiCall('/courses');
+            if (ok) {
+                coursesData = data;
+                renderCourses();
+            }
+        }
+
+        async function loadHigherStudies() {
+            const { data, ok } = await apiCall('/higher-studies');
+            if (ok) {
+                higherStudiesData = data;
+                renderHigherStudies();
+            }
+        }
+
+        async function loadMentors() {
+            const { data, ok } = await apiCall('/mentors');
+            if (ok) {
+                mentorsList = data;
+                renderMentors();
+            }
+        }
+
+        async function loadTests() {
+            const { data, ok } = await apiCall('/tests');
+            if (ok) {
+                availableTests = data;
+            }
+        }
+        let navStack = ['dashboard'];
+        let currentUser = null; // AUTH STATE
+
+        function navigateTo(sectionId, isHome = false) {
+            const current = document.querySelector('.view-section:not(.hidden)');
+            if(current) current.classList.add('hidden');
+
+            const target = document.getElementById(sectionId);
+            if(target) {
+                target.classList.remove('hidden');
+                window.scrollTo(0, 0);
+                if (isHome) navStack = ['dashboard'];
+                else navStack.push(sectionId);
+                updateBackBtn();
+            } else {
+                console.error("Section not found:", sectionId);
+            }
+        }
+
+        function goBack() {
+            if (navStack.length > 1) {
+                const current = navStack.pop(); 
+                const prev = navStack[navStack.length - 1]; 
+                
+                document.getElementById(current).classList.add('hidden');
+                document.getElementById(prev).classList.remove('hidden');
+                updateBackBtn();
+            }
+        }
+
+        function updateBackBtn() {
+            const btn = document.getElementById('back-container');
+            if (navStack.length > 1) btn.classList.remove('hidden');
+            else btn.classList.add('hidden');
+        }
+
+        // --- AUTH LOGIC (CONNECTED TO BACKEND) ---
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-pass').value;
+
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    loginUser(data.user);
+                    alert("🔒 Login Successful!");
+                } else {
+                    alert("❌ " + data.error);
+                }
+            } catch (err) {
+                alert("❌ Login failed: " + err.message);
+            }
+        }
+
+async function handleSignup(e) {
+            e.preventDefault();
+            // Eligibility Check
+            const qual = document.getElementById('reg-qual').value;
+            const cgpa = parseFloat(document.getElementById('reg-cgpa').value);
+            
+            if(qual === 'other') {
+                alert("⚠️ Access Restricted: This platform is currently exclusive to B.Tech and Diploma students.");
+                return;
+            }
+            if(cgpa < 5.0) {
+                alert("⚠️ Eligibility Note: A minimum CGPA of 5.0 is recommended for most features.");
+            }
+
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-pass').value;
+
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    loginUser(data.user);
+                    alert("✅ Signup Successful!");
+                } else {
+                    alert("❌ " + data.error);
+                }
+            } catch (err) {
+                alert("❌ Signup failed: " + err.message);
+            }
+        }
+
+        function loginUser(user) {
+            currentUser = user;
+            // Update Navbar
+            const authSection = document.getElementById('auth-section');
+            authSection.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="hidden md:block text-right">
+                        <p class="text-sm font-bold">${user.name}</p>
+                        <p class="text-xs text-blue-200">Student</p>
+                    </div>
+                    <div onclick="navigateTo('user-profile-view')" class="w-10 h-10 bg-white rounded-full p-0.5 cursor-pointer hover:scale-105 transition">
+                        <img src="https://ui-avatars.com/api/?name=${user.name}&background=random" class="w-full h-full rounded-full">
+                    </div>
+                    <button onclick="logout()" class="text-xs bg-red-500/20 hover:bg-red-500 p-2 rounded text-white transition"><i class="ph-bold ph-sign-out"></i></button>
+                </div>
+            `;
+            
+            // Populate Profile View
+            document.getElementById('profile-name').innerText = user.name;
+            document.getElementById('profile-email').innerText = user.email;
+            document.getElementById('profile-img').src = `https://ui-avatars.com/api/?name=${user.name}&background=random`;
+            document.getElementById('profile-college').innerText = user.college;
+            document.getElementById('profile-branch').innerText = user.branch;
+            document.getElementById('profile-cgpa').innerText = user.cgpa;
+            document.getElementById('profile-year').innerText = user.year;
+
+            navigateTo('dashboard', true);
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('auth-section').innerHTML = `
+                <button onclick="navigateTo('login-home')" class="bg-white/10 border border-white/20 text-white px-5 py-1.5 rounded-full font-medium hover:bg-white hover:text-blue-800 transition text-sm backdrop-blur-sm">
+                    Sign In | Login
+                </button>
+            `;
+            navigateTo('dashboard', true);
+        }
+
+        // --- CHATBOT LOGIC (SIMULATED API) ---
+        // Knowledge Base for "API"
+        const botKnowledge = {
+            "placements": "For placements, companies focus on 3 things: Aptitude (Quant/Verbal), Coding (DSA), and Core Subjects (DBMS, OS). Top companies visiting are TCS, Zoho, Amazon, etc. Average package is 4-6 LPA for service based and 10+ LPA for product based.",
+            "companies": "We have 50+ companies listed including TCS, Infosys, Zoho, Accenture, and Amazon. Check the 'Companies' module for package details.",
+            "job": "To get a job, you need: 1. A strong resume. 2. Good technical skills (Java/Python). 3. Internship experience. 4. Good communication skills. Try our 'Job Predictor' to see where you stand.",
+            "skills": "Essential skills for freshers: Problem Solving (DSA), One Programming Language (Java/C++), Web Basics (HTML/CSS), and Soft Skills (Communication).",
+            "resume": "Your resume should highlight: Projects, Internships, Technical Skills, and CGPA. Keep it under 1 page.",
+            "eligibility": "Most companies require 60% or 6.0 CGPA throughout academics (10th, 12th, B.Tech) with no active backlogs.",
+            "internship": "Internships are crucial. You can find opportunities in our 'Internship Hub'. We have listings from Zoho, Swiggy, and startups.",
+            "futurehire": "FutureHire is a career platform for B.Tech students offering Job Prediction, Skill Roadmaps, Placement Prep, and Mentor connections.",
+            "default": "I can help with Placements, Companies, Jobs, Skills, and Resume tips. Please ask specific questions."
+        };
+
+        function toggleChat() {
+            const win = document.getElementById('chat-window');
+            if(win.style.display === 'flex') win.style.display = 'none';
+            else {
+                win.style.display = 'flex';
+                setTimeout(() => document.getElementById('chat-input').focus(), 100);
+            }
+        }
+
+        function handleChatEnter(e) {
+            if(e.key === 'Enter') sendMessage();
+        }
+
+        function handleChipClick(msg) {
+            document.getElementById('chat-input').value = msg;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if(!msg) return;
+
+            addMessage(msg, 'user');
+            input.value = '';
+
+            // Show simulated typing
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'text-xs text-slate-400 ml-4 italic mt-1';
+            typingDiv.id = 'typing-indicator';
+            typingDiv.innerText = 'FutureHire AI is typing...';
+            document.getElementById('chat-body').appendChild(typingDiv);
+
+            // Call "API"
+            try {
+                const response = await callChatAPI(msg); 
+                document.getElementById('typing-indicator').remove();
+                addMessage(response, 'bot');
+            } catch (error) {
+                console.error(error);
+                document.getElementById('typing-indicator').remove();
+                addMessage("Sorry, I'm having trouble connecting to the server.", 'bot');
+            }
+        }
+
+        function addMessage(text, type) {
+            const body = document.getElementById('chat-body');
+            const div = document.createElement('div');
+            div.className = `msg ${type === 'bot' ? 'msg-bot' : 'msg-user'}`;
+            div.innerHTML = text; 
+            body.appendChild(div);
+            body.scrollTop = body.scrollHeight;
+        }
+
+        // --- API CODE SECTION ---
+        async function callChatAPI(userMessage) {
+            
+            // --- 1. REAL API CODE (Uncomment to use with Key) ---
+            /*
+            const API_KEY = "YOUR_GEMINI_API_KEY";
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
+            
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: `You are a career assistant for FutureHire. Answer this student query concisely: ${userMessage}`
+                    }]
+                }]
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+            } catch (error) {
+                console.error("API Error", error);
+                return "API Error. Falling back to local knowledge.";
+            }
+            */
+
+            // --- 2. SIMULATED LOCAL API (Simulating Intelligence) ---
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    const lowerMsg = userMessage.toLowerCase();
+                    
+                    // Specific Logic to mimic "Answering All Questions"
+                    if (lowerMsg.includes('placement') || lowerMsg.includes('hiring') || lowerMsg.includes('recruit')) {
+                        resolve(botKnowledge['placements']);
+                    } 
+                    else if (lowerMsg.includes('company') || lowerMsg.includes('package') || lowerMsg.includes('salary')) {
+                        resolve(botKnowledge['companies']);
+                    }
+                    else if (lowerMsg.includes('job') || lowerMsg.includes('work') || lowerMsg.includes('role')) {
+                        resolve(botKnowledge['job']);
+                    }
+                    else if (lowerMsg.includes('skill') || lowerMsg.includes('learn') || lowerMsg.includes('tech')) {
+                        resolve(botKnowledge['skills']);
+                    }
+                    else if (lowerMsg.includes('resume') || lowerMsg.includes('cv')) {
+                        resolve(botKnowledge['resume']);
+                    }
+                    else if (lowerMsg.includes('eligib') || lowerMsg.includes('criteria') || lowerMsg.includes('cgpa')) {
+                        resolve(botKnowledge['eligibility']);
+                    }
+                    else if (lowerMsg.includes('intern')) {
+                        resolve(botKnowledge['internship']);
+                    }
+                    else if (lowerMsg.includes('what is futurehire') || lowerMsg.includes('about')) {
+                        resolve(botKnowledge['futurehire']);
+                    }
+                    else if (lowerMsg.includes('hi') || lowerMsg.includes('hello')) {
+                        resolve("Hello! I can answer questions about Placements, Companies, Skills, and how to get a job. Ask me anything!");
+                    }
+                    else {
+                        resolve(botKnowledge['default']);
+                    }
+                }, 1000); // Network delay simulation
+            });
+        }
+
+        // --- RENDER FUNCTIONS (ALL MODULES) ---
+        
+        // 1. COMPANIES & INTERNSHIPS
+        const gridContainer = document.getElementById('company-grid-container');
+        allCompanies.forEach((c, index) => {
+            const card = document.createElement('div');
+            card.className = "bg-white p-5 rounded-lg shadow-sm border border-slate-200 hover:shadow-md hover:border-blue-400 transition cursor-pointer flex items-center justify-between";
+            card.innerHTML = `<div><h3 class="font-bold text-lg text-slate-800">${c.name}</h3><span class="text-xs bg-slate-100 px-2 py-1 rounded text-slate-600">${c.type}</span></div><i class="ph-bold ph-caret-right text-slate-300"></i>`;
+            card.onclick = () => showCompanyDetails(index);
+            gridContainer.appendChild(card);
+        });
+
+        const tableBody = document.getElementById('package-table-body');
+        allCompanies.forEach(c => {
+            const row = document.createElement('tr');
+            row.className = "hover:bg-slate-50 transition";
+            row.innerHTML = `<td class="px-6 py-4 font-bold text-slate-800">${c.name}</td><td class="px-6 py-4">${c.role}</td><td class="px-6 py-4 text-emerald-600 font-bold">${c.pkg}</td><td class="px-6 py-4 text-rose-500 text-xs">${Math.random() > 0.7 ? '2 Years' : 'None'}</td>`;
+            tableBody.appendChild(row);
+        });
+
+        const internContainer = document.getElementById('internship-container');
+        internships.forEach(i => {
+            const div = document.createElement('div');
+            div.className = "bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500 hover:shadow-md transition";
+            div.innerHTML = `<div class="flex justify-between items-start mb-2"><h3 class="font-bold text-lg text-slate-900">${i.role}</h3><span class="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded">${i.mode}</span></div><p class="text-slate-600 font-medium mb-4">${i.company}</p><div class="flex gap-4 text-sm text-slate-500 mb-6"><span>⏱ ${i.dur}</span><span>💰 ${i.stipend}</span></div><button onclick="openApplyForm('${i.role}', '${i.company}')" class="w-full bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700 transition">Apply Now</button>`;
+            internContainer.appendChild(div);
+        });
+
+        // 2. COURSES RENDER
+        const coursesGrid = document.getElementById('courses-grid');
+        coursesData.forEach(course => {
+            const div = document.createElement('div');
+            div.className = "bg-white rounded-xl shadow-sm hover:shadow-md border border-slate-200 p-6 cursor-pointer transition-all hover:border-blue-300";
+            div.innerHTML = `
+                <div class="w-12 h-12 rounded-lg ${course.color} flex items-center justify-center mb-4 text-2xl">
+                    <i class="ph-fill ${course.icon}"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-2">${course.title}</h3>
+                <p class="text-sm text-slate-600 mb-4 line-clamp-2">${course.desc}</p>
+                <div class="flex items-center text-xs text-slate-400 font-medium">
+                    <span class="flex items-center mr-4"><i class="ph-fill ph-play-circle mr-1"></i> Video Lessons</span>
+                    <span class="flex items-center"><i class="ph-fill ph-file-text mr-1"></i> Notes</span>
+                </div>
+            `;
+            div.onclick = () => showCourseDetail(course);
+            coursesGrid.appendChild(div);
+        });
+
+        // 3. UPDATED ROADMAPS RENDER
+        const roadmapsContainer = document.getElementById('roadmaps-container');
+        roadmapsData.forEach((map, idx) => {
+            const div = document.createElement('div');
+            div.className = "bg-white rounded-xl shadow-sm border border-slate-200 p-6";
+            
+            let stepsHtml = '';
+            map.steps.forEach((step, sIdx) => {
+                stepsHtml += `
+                    <div class="flex md:flex-col items-center group w-full md:w-auto">
+                        <div class="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-white border-2 border-${map.color}-500 flex items-center justify-center font-bold text-${map.color}-600 text-sm md:text-base mr-4 md:mr-0 md:mb-3 shadow-sm">
+                            ${sIdx + 1}
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 w-full md:w-48 text-left md:text-center shadow-sm">
+                            <p class="text-xs text-${map.color}-600 font-bold mb-1 uppercase tracking-wide">${step.time}</p>
+                            <p class="text-sm font-medium text-slate-800">${step.t}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            div.innerHTML = `
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-slate-900 flex items-center">
+                        <i class="ph-fill ph-target mr-2 text-${map.color}-600"></i> ${map.title} Roadmap
+                    </h3>
+                    <div class="mt-2 md:mt-0 flex flex-col md:flex-row md:items-center gap-4">
+                         <div class="flex items-center text-sm text-slate-500">
+                              <i class="ph-fill ph-clock mr-1"></i> Time-based Plan
+                         </div>
+                         <a href="${map.link}" target="_blank" class="inline-flex items-center text-xs font-bold text-white bg-${map.color}-600 px-3 py-1.5 rounded hover:bg-${map.color}-700 transition shadow-sm">
+                            <i class="ph-bold ph-tree-structure mr-1"></i> View Full Graph
+                         </a>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2 z-0"></div>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10 space-y-6 md:space-y-0">
+                        ${stepsHtml}
+                    </div>
+                </div>
+            `;
+            roadmapsContainer.appendChild(div);
+        });
+
+        const placementContainer = document.getElementById('placement-container');
+        placementPrepData.forEach(item => {
+            const div = document.createElement('div');
+            div.className = "bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow";
+            let subtopicsHtml = '';
+            item.topics.forEach(t => {
+                subtopicsHtml += `
+                    <li class="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 cursor-pointer group transition-all">
+                        <span class="text-slate-700 font-medium group-hover:text-green-700">${t}</span>
+                        <i class="ph-bold ph-caret-right text-slate-400 group-hover:text-green-600"></i>
+                    </li>
+                `;
+            });
+            div.innerHTML = `
+                <div class="bg-slate-50 p-6 border-b border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mr-3 text-xl">
+                            <i class="ph-fill ${item.icon}"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900">${item.title}</h3>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <ul class="space-y-3">
+                        ${subtopicsHtml}
+                    </ul>
+                    <button class="w-full mt-6 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">Start Practicing</button>
+                </div>
+            `;
+            placementContainer.appendChild(div);
+        });
+
+        // 4. HIGHER STUDIES RENDER
+        const studiesGrid = document.getElementById('higher-studies-grid');
+        higherStudiesData.forEach(study => {
+            const div = document.createElement('div');
+            div.className = "bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg border border-slate-100 cursor-pointer transition group";
+            div.innerHTML = `
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl ${study.color} flex items-center justify-center text-2xl">
+                        <i class="ph-fill ${study.icon}"></i>
+                    </div>
+                    <i class="ph-bold ph-arrow-right text-slate-300 group-hover:text-slate-600 transition"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">${study.title}</h3>
+                <p class="text-sm text-slate-500">${study.desc}</p>
+            `;
+            div.onclick = () => showStudyDetail(study);
+            studiesGrid.appendChild(div);
+        });
+
+        function showStudyDetail(study) {
+            const content = document.getElementById('study-detail-content');
+            content.innerHTML = `
+                <div class="bg-gradient-to-r from-yellow-500 to-amber-600 p-8 text-white relative">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-4xl">
+                            <i class="ph-fill ${study.icon}"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-3xl font-bold">${study.title}</h2>
+                            <p class="text-yellow-100 text-lg">${study.desc}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-8 grid md:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                            <h4 class="font-bold text-slate-700 mb-2 flex items-center"><i class="ph-fill ph-question text-yellow-600 mr-2"></i> What is it?</h4>
+                            <p class="text-slate-600 text-sm leading-relaxed">${study.details.what}</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                            <h4 class="font-bold text-slate-700 mb-2 flex items-center"><i class="ph-fill ph-users text-yellow-600 mr-2"></i> Who should choose?</h4>
+                            <p class="text-slate-600 text-sm leading-relaxed">${study.details.who}</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                            <h4 class="font-bold text-slate-700 mb-2 flex items-center"><i class="ph-fill ph-pencil-simple text-yellow-600 mr-2"></i> Entrance Exam</h4>
+                            <p class="text-slate-600 text-sm leading-relaxed font-semibold">${study.details.exam}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                            <h4 class="font-bold text-slate-700 mb-2 flex items-center"><i class="ph-fill ph-steps text-yellow-600 mr-2"></i> Process</h4>
+                            <p class="text-slate-600 text-sm leading-relaxed">${study.details.process}</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                            <h4 class="font-bold text-slate-700 mb-2 flex items-center"><i class="ph-fill ph-briefcase text-yellow-600 mr-2"></i> Career Opportunities</h4>
+                            <p class="text-slate-600 text-sm leading-relaxed">${study.details.opp}</p>
+                        </div>
+                        <button class="w-full py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition">View Resources & Colleges</button>
+                    </div>
+                </div>
+            `;
+            navigateTo('higher-studies-detail');
+        }
+
+        // 5. MENTORS RENDER
+        const domainsGrid = document.getElementById('mentor-domains-grid');
+        mentorDomains.forEach(dom => {
+            const div = document.createElement('div');
+            div.className = "bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-400 hover:shadow-md cursor-pointer transition text-center group";
+            div.innerHTML = `
+                <div class="w-16 h-16 mx-auto bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-3xl mb-4 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                    <i class="ph-fill ${dom.icon}"></i>
+                </div>
+                <h3 class="font-bold text-lg text-slate-800">${dom.title}</h3>
+                <p class="text-sm text-slate-500 mt-1">${dom.count}</p>
+            `;
+            div.onclick = () => showMentorList(dom);
+            domainsGrid.appendChild(div);
+        });
+
+        function showMentorList(domain) {
+            const grid = document.getElementById('mentor-list-grid');
+            document.getElementById('mentor-list-title').innerText = `Mentors for ${domain.title}`;
+            grid.innerHTML = ''; 
+
+            const filteredMentors = mentorsList; 
+
+            filteredMentors.forEach(m => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-6 hover:shadow-md transition";
+                card.innerHTML = `
+                    <div class="flex-shrink-0 flex flex-col items-center">
+                        <div class="w-20 h-20 bg-slate-200 rounded-full mb-3 overflow-hidden">
+                             <img src="https://ui-avatars.com/api/?name=${m.name}&background=6366f1&color=fff" alt="${m.name}" class="w-full h-full object-cover">
+                        </div>
+                        <span class="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Available</span>
+                    </div>
+                    <div class="flex-grow">
+                        <h3 class="text-xl font-bold text-slate-800">${m.name}</h3>
+                        <p class="text-indigo-600 font-medium text-sm">${m.role} at ${m.company}</p>
+                        <p class="text-slate-500 text-xs mt-1 mb-4">Exp: ${m.exp}</p>
+                        
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            ${m.areas.map(a => `<span class="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded border border-slate-200">${a}</span>`).join('')}
+                        </div>
+                        
+                        <button onclick="bookMentor('${m.name}')" class="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 transition">Book Session</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            navigateTo('mentor-list-view');
+        }
+
+        function bookMentor(name) {
+            document.getElementById('booking-mentor-name').innerText = `with ${name}`;
+            navigateTo('mentor-booking-view');
+        }
+
+        function confirmBooking(e) {
+            e.preventDefault();
+            alert("✅ Session Booked Successfully! You will receive a calendar invite shortly.");
+            navigateTo('dashboard', true);
+        }
+
+        // --- COURSE DETAIL LOGIC ---
+        function showCourseDetail(course) {
+            const container = document.getElementById('course-detail-content');
+            let playlistHtml = '';
+            if(course.playlist.length > 0) {
+                course.playlist.forEach(vid => {
+                    playlistHtml += `
+                        <div class="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 cursor-pointer group transition-colors">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center mr-4">
+                                    <i class="ph-fill ph-play-circle text-xl"></i>
+                                </div>
+                                <p class="font-medium text-slate-900">${vid}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                playlistHtml = `<p class="text-slate-500 italic">Content coming soon...</p>`;
+            }
+            let notesHtml = '';
+            if(course.notes.length > 0) {
+                course.notes.forEach(n => {
+                    notesHtml += `<li class="flex items-center text-sm text-slate-700 p-2 hover:bg-white rounded"><div class="w-1.5 h-1.5 rounded-full bg-slate-400 mr-2"></div>${n}</li>`;
+                });
+            } else {
+                notesHtml = `<p class="text-sm text-slate-500">No notes available.</p>`;
+            }
+            container.innerHTML = `
+                <div class="bg-gradient-to-r from-slate-900 to-slate-800 p-8 text-white rounded-t-2xl relative overflow-hidden">
+                    <div class="absolute top-6 right-6 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold border border-white/30 flex items-center">
+                        <i class="ph-fill ph-check-circle mr-1"></i> Beginner Friendly
+                    </div>
+                    <div class="inline-flex p-3 rounded-lg bg-white/10 backdrop-blur-sm mb-4 text-3xl">
+                        <i class="ph-fill ${course.icon}"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold mb-2">${course.title}</h1>
+                    <p class="text-slate-300 max-w-2xl">${course.desc}</p>
+                </div>
+                <div class="p-8 bg-white border border-t-0 border-slate-200 rounded-b-2xl">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-2 space-y-8">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-900 mb-4 flex items-center">
+                                    <i class="ph-fill ph-layers mr-2 text-blue-600"></i> Topic-wise Structure
+                                </h3>
+                                <div class="bg-blue-50 rounded-xl p-6 border border-blue-100">
+                                    <ul class="space-y-3">
+                                        <li class="flex items-start"><span class="flex-shrink-0 h-6 w-6 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center text-sm font-bold mr-3">1</span><span class="text-slate-700">Introduction & Basics</span></li>
+                                        <li class="flex items-start"><span class="flex-shrink-0 h-6 w-6 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center text-sm font-bold mr-3">2</span><span class="text-slate-700">Core Concepts Deep Dive</span></li>
+                                        <li class="flex items-start"><span class="flex-shrink-0 h-6 w-6 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center text-sm font-bold mr-3">3</span><span class="text-slate-700">Practical Projects</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-900 mb-4 flex items-center">
+                                    <i class="ph-fill ph-play-circle mr-2 text-red-600"></i> Video Playlists
+                                </h3>
+                                <div class="space-y-3">
+                                    ${playlistHtml}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-1">
+                            <div class="bg-slate-50 rounded-xl p-6 border border-slate-200 sticky top-24">
+                                <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                                    <i class="ph-fill ph-file-text mr-2 text-slate-600"></i> Written Notes
+                                </h3>
+                                <ul class="space-y-2">
+                                    ${notesHtml}
+                                </ul>
+                                <button class="w-full mt-6 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 hover:bg-white hover:border-slate-400 transition-all">Download All Materials</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            navigateTo('courses-detail-view');
+        }
+
+        function showCompanyDetails(index) {
+            const c = allCompanies[index];
+            const content = document.getElementById('company-detail-content');
+            const history = c.history || `${c.name} is a leading ${c.type} company.`;
+            const branches = c.branches ? c.branches.join(', ') : c.hq;
+            const hiring = c.hiringPattern || { cgpa: '6.0+', dsa: 'Basic', projects: 'Preferred', communication: 'Good' };
+            const skills = c.requiredSkills ? c.requiredSkills.join(', ') : 'Technical Skills';
+            content.innerHTML = `
+                <div class="flex items-center gap-4 mb-6 border-b pb-6">
+                    <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center text-2xl text-blue-600 font-bold">${c.name[0]}</div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-slate-900">${c.name}</h2>
+                        <p class="text-slate-500">${c.type} Based • Est. ${c.est} • HQ: ${c.hq}</p>
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8 mb-8">
+                    <div>
+                        <h3 class="font-bold text-lg mb-3">About Company</h3>
+                        <p class="text-slate-600 mb-4 leading-relaxed">${history}</p>
+                        <h3 class="font-bold text-lg mb-3">Branches / Locations</h3>
+                        <p class="text-slate-600 mb-4">${branches}</p>
+                        <h3 class="font-bold text-lg mb-3">Hiring Role</h3>
+                        <p class="bg-blue-50 text-blue-800 p-3 rounded font-medium inline-block border border-blue-100">${c.role}</p>
+                    </div>
+                    <div class="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                        <h3 class="font-bold text-lg mb-4">Hiring Pattern</h3>
+                        <div class="space-y-2 text-sm">
+                            <p><strong>CGPA:</strong> ${hiring.cgpa}</p>
+                            <p><strong>DSA:</strong> ${hiring.dsa}</p>
+                            <p><strong>Projects:</strong> ${hiring.projects}</p>
+                            <p><strong>Communication:</strong> ${hiring.communication}</p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-slate-200">
+                            <p class="text-sm font-bold text-slate-500 uppercase">Package Offer</p>
+                            <p class="text-2xl font-bold text-emerald-600">${c.pkg}</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg mb-3">Required Skills</h3>
+                    <div class="flex flex-wrap gap-2">
+                        ${skills.split(', ').map(s => `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">${s}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+            navigateTo('comp-detail-view');
+        }
+
+        function openApplyForm(role, company) {
+            document.getElementById('apply-role-title').innerText = `Applying for: ${role} at ${company}`;
+            navigateTo('application-form');
+        }
+
+        function handleApply(e) {
+            e.preventDefault();
+            const cgpa = parseFloat(document.getElementById('applicant-cgpa').value);
+            if (cgpa < 6.0) alert("⚠️ Minimum CGPA of 6.0 is required.");
+            else {
+                alert("✅ Application Submitted!");
+                goBack();
+            }
+        }
+
+        function analyzeComm() {
+            const input = document.getElementById('comm-input').value;
+            if(input.length < 5) {
+                alert("Please type a longer sentence.");
+                return;
+            }
+            document.getElementById('comm-result').classList.remove('hidden');
+        }
+
+        function analyzeSoft() {
+            const input = document.getElementById('soft-input').value;
+            if(input.length < 5) {
+                alert("Please type a response.");
+                return;
+            }
+            document.getElementById('soft-result').classList.remove('hidden');
+        }
+
+        function bookSlot(e, type) {
+            e.preventDefault();
+            alert(`✅ ${type} Interview Slot Booked Successfully! Check your email for the meeting link.`);
+        }
+
+        function startTest(topic) {
+            const confirmStart = confirm(`Are you ready to start the ${topic} Assessment?\n\n- Duration: 30 Mins\n- No tab switching allowed`);
+            if(confirmStart) {
+                alert("Test environment loading... (Demo)");
+            }
+        }
+
+        // --- UPDATED JOB PREDICTOR LOGIC (FROM UPDATE) ---
+        function handlePrediction(e) {
+            e.preventDefault();
+            
+            // 1. Get Values
+            const role = document.getElementById('target-role').value;
+            const skills = document.getElementById('skills-input').value.toLowerCase();
+            const internshipCount = parseInt(document.getElementById('internships').value);
+            const comms = document.getElementById('communication').value;
+
+            // 2. Show Loading
+            navigateTo('prediction-loading');
+
+            // 3. Simulate Analysis Time
+            setTimeout(() => {
+                calculateResults(role, skills, internshipCount, comms);
+            }, 2000);
+        }
+
+        function calculateResults(role, skills, internships, comms) {
+            let score = 0;
+            let missingSkills = [];
+            let requiredSkills = [];
+            let companyMatches = [];
+            let roleName = "";
+
+            // Role Logic
+            if (role === 'sde') {
+                roleName = "Software Developer";
+                requiredSkills = ['java', 'python', 'dsa', 'sql'];
+                companyMatches = [
+                    { name: "TCS Digital", role: "System Engineer", pkg: "7.0 LPA" },
+                    { name: "Amazon", role: "SDE I", pkg: "25.0 LPA" }
+                ];
+            } else if (role === 'web') {
+                roleName = "Web Developer";
+                requiredSkills = ['html', 'css', 'react', 'node'];
+                companyMatches = [
+                    { name: "Zoho", role: "Web Developer", pkg: "6.5 LPA" },
+                    { name: "Freshworks", role: "Frontend Eng", pkg: "8.0 LPA" }
+                ];
+            } else if (role === 'data') {
+                roleName = "Data Analyst";
+                requiredSkills = ['python', 'sql', 'pandas', 'excel'];
+                companyMatches = [
+                    { name: "Mu Sigma", role: "Decision Scientist", pkg: "7.0 LPA" }
+                ];
+            } else {
+                roleName = "DevOps Engineer";
+                requiredSkills = ['linux', 'aws', 'docker'];
+                companyMatches = [
+                    { name: "Accenture", role: "Cloud Analyst", pkg: "6.0 LPA" }
+                ];
+            }
+
+            // Calculations
+            let techScore = 0;
+            requiredSkills.forEach(req => {
+                if(skills.includes(req)) techScore += 2.5; // Max 10 (4 skills * 2.5)
+                else missingSkills.push(req);
+            });
+            // Cap tech score logic for demo simplicity
+            if(techScore > 10) techScore = 10;
+
+            let commScore = comms === 'exc' ? 10 : (comms === 'good' ? 7 : 4);
+            let resumeScore = internships >= 1 ? 8 : 4; // Mock logic
+
+            let totalScore = Math.round(((techScore + commScore + resumeScore) / 30) * 100);
+
+            // UI Updates
+            navigateTo('prediction-result');
+            
+            // Animate Bars
+            document.getElementById('tech-score').innerText = `${Math.round(techScore)}/10`;
+            document.getElementById('tech-bar').style.width = `${techScore * 10}%`;
+            
+            document.getElementById('comm-score').innerText = `${commScore}/10`;
+            document.getElementById('comm-bar').style.width = `${commScore * 10}%`;
+            
+            document.getElementById('resume-score').innerText = `${resumeScore}/10`;
+            document.getElementById('resume-bar').style.width = `${resumeScore * 10}%`;
+
+            // Animate Circle
+            document.getElementById('score-text').innerText = `${totalScore}%`;
+            const circle = document.getElementById('score-circle');
+            const circumference = 100;
+            const offset = circumference - (totalScore / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+            
+            // Ready vs Not Ready
+            if (totalScore >= 70) {
+                document.getElementById('readiness-badge').innerText = "Job Ready";
+                document.getElementById('readiness-badge').className = "mt-4 inline-block px-4 py-1 bg-green-100 text-green-700 rounded-full text-sm font-bold";
+                circle.classList.add('text-green-500');
+                
+                document.getElementById('res-ready').classList.remove('hidden');
+                document.getElementById('res-not-ready').classList.add('hidden');
+                document.getElementById('ready-role').innerText = roleName;
+
+                const matchContainer = document.getElementById('company-matches');
+                matchContainer.innerHTML = '';
+                companyMatches.forEach(c => {
+                    matchContainer.innerHTML += `
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                            <h4 class="font-bold text-slate-800">${c.name}</h4>
+                            <p class="text-sm text-slate-500">${c.role}</p>
+                            <p class="text-emerald-600 font-bold mt-1">${c.pkg}</p>
+                        </div>
+                    `;
+                });
+
+            } else {
+                document.getElementById('readiness-badge').innerText = "Not Ready";
+                document.getElementById('readiness-badge').className = "mt-4 inline-block px-4 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-bold";
+                circle.classList.add('text-orange-500');
+
+                document.getElementById('res-ready').classList.add('hidden');
+                document.getElementById('res-not-ready').classList.remove('hidden');
+
+                const gapList = document.getElementById('gap-list');
+                gapList.innerHTML = '';
+                if(missingSkills.length > 0) {
+                    missingSkills.forEach(s => {
+                        gapList.innerHTML += `<li class="flex items-center text-sm text-slate-700"><i class="ph-fill ph-x-circle text-red-500 mr-2"></i> Missing Skill: <strong class="ml-1 capitalize">${s}</strong></li>`;
+                    });
+                } else {
+                     gapList.innerHTML += `<li class="flex items-center text-sm text-slate-700"><i class="ph-fill ph-info text-blue-500 mr-2"></i> Technical skills are good. Focus on projects.</li>`;
+                }
+                if (internships === 0) {
+                    gapList.innerHTML += `<li class="flex items-center text-sm text-slate-700"><i class="ph-fill ph-briefcase text-orange-500 mr-2"></i> No Internship Experience</li>`;
+                }
+            }
+        }
+
+        // --- INITIALIZE APP ---
+        async function initializeApp() {
+            // Load data from APIs
+            await Promise.all([
+                loadCompanies(),
+                loadSkills(),
+                loadCourses(),
+                loadHigherStudies(),
+                loadMentors(),
+                loadTests()
+            ]);
+            
+            // Check for existing login
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const { data, ok } = await apiCall('/user/profile');
+                    if (ok) {
+                        loginUser(data);
+                    }
+                } catch (err) {
+                    localStorage.removeItem('token');
+                }
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
